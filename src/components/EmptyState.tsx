@@ -66,7 +66,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           Generate Pixel-Perfect Eyecare Summaries &amp; Invoices
         </h2>
         <p className="text-sm text-slate-600 max-w-2xl mx-auto mt-2 leading-relaxed">
-          Ingest Blink PMS exports or care home consultation spreadsheets in seconds. Automatically format Spex prescriptions, generate plain-English dementia-friendly spectacle guides, calculate +2 year recalls, and export A4 clinical PDFs.
+          Ingest PMS exports or care home consultation spreadsheets in seconds. Automatically format Spex prescriptions, generate plain-English eyecare guides, calculate +2 year recalls, and export A4 clinical PDFs.
         </p>
       </div>
 
@@ -101,7 +101,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           Drop Care Home Consultation CSV Here
         </h3>
         <p className="text-xs text-slate-500 max-w-md mx-auto mb-5">
-          Supports exports from Blink PMS and standard care home visit rosters with automatic column mapping.
+          Supports PMS exports and standard care home visit rosters with automatic column mapping.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-3">
@@ -158,9 +158,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center mb-2.5">
             <Brain className="w-4 h-4" />
           </div>
-          <h4 className="font-bold text-slate-900 text-xs mb-1">Dementia &amp; Carer Guide</h4>
+          <h4 className="font-bold text-slate-900 text-xs mb-1">Eyecare Guide</h4>
           <p className="text-[11px] text-slate-500 leading-snug">
-            Plain-English explanation of Distance vs. Reading glasses, frame colors, and SOS emergency eye advice.
+            Plain-English explanation of Distance, Reading, and Bifocal/Varifocal glasses, frame colors, and SOS advice.
           </p>
         </div>
 

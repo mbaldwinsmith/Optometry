@@ -6,6 +6,7 @@ import {
   ValidationError,
   ParseResult,
   RecallItem,
+  DispenseInfo,
 } from '../types/optometry';
 import { toTitleCase, normalizeDate, calculateNextExamDate, addDaysToDate, parseBoolean, parseFunding } from './cleaners';
 import { generateReportRef, generateInvoiceNo, getCareHomeInitials, getPatientInitials } from './hash';
@@ -83,7 +84,7 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
         results.data.forEach((row, index) => {
           const rowNumber = index + 2;
 
-          const blinkIdRaw = getRowValue(row, 'Blink ID', matched) || getRowValue(row, 'Patient ID', matched) || ('BLK-' + (1000 + index));
+          const blinkIdRaw = getRowValue(row, 'ID', matched) || getRowValue(row, 'Blink ID', matched) || getRowValue(row, 'Patient ID', matched) || ('ID-' + (1000 + index));
           const firstNameRaw = getRowValue(row, 'Resident First Name', matched) || getRowValue(row, 'First Name', matched);
           const surnameRaw = getRowValue(row, 'Resident Surname', matched) || getRowValue(row, 'Surname', matched);
           const careHomeRaw = getRowValue(row, 'Care Home', matched);
@@ -168,11 +169,11 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
 
           const spexRx = buildSpexRx(rightInput, leftInput, distPdRaw || parsedNotes.pd);
 
-          const dispense = {
-            distFrame: parsedNotes.distFrame || (spexRx.hasPrescription ? 'Solo 837 Purple 52' : '-'),
-            nearFrame: parsedNotes.nearFrame || (spexRx.rightEye.nearAdd !== '-' ? 'Solo 226 Bronze Flex Hinge' : '-'),
-            interFrame: parsedNotes.interFrame || '-',
+          const dispense: DispenseInfo = {
             lensType: parsedNotes.lensType,
+            distFrame: parsedNotes.distFrame || (parsedNotes.lensType === 'Single Vision Distance Only' ? 'Solo 837 Purple 52' : '-'),
+            nearFrame: parsedNotes.nearFrame || (parsedNotes.lensType === 'Single Vision Near (Reading Only)' || spexRx.rightEye.nearAdd !== '-' ? 'Solo 226 Bronze Flex Hinge' : '-'),
+            bifocalFrame: parsedNotes.bifocalFrame || (parsedNotes.lensType === 'Bifocal Lenses' ? 'Stepper SI 6012 Titanium Wine' : ''),
             voucherType: parsedNotes.voucherType || (funding === 'NHS' ? 'GOS 3 (Voucher A)' : 'Private'),
             caseCloth: true,
           };
@@ -230,7 +231,11 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
         const totalRevenue = seenPatients.reduce((sum, p) => sum + p.totalAmount, 0);
         const nhsCount = seenPatients.filter((p) => p.funding === 'NHS').length;
         const privateCount = seenPatients.filter((p) => p.funding === 'Private').length;
-        const spectaclesOrderedCount = seenPatients.filter((p) => p.dispense.distFrame !== '-' || p.dispense.nearFrame !== '-').length;
+        const spectaclesOrderedCount = seenPatients.filter((p) => 
+          (p.dispense.distFrame && p.dispense.distFrame !== '-') || 
+          (p.dispense.nearFrame && p.dispense.nearFrame !== '-') ||
+          (p.dispense.bifocalFrame && p.dispense.bifocalFrame !== '-')
+        ).length;
 
         const recalls: RecallItem[] = seenPatients.map((p) => ({
           patientName: p.residentFullName,

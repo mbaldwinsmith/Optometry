@@ -1,5 +1,12 @@
 # EliteSight HomeCare — Optometry Batch Portal & Clinical Document Generator
 
+[![PWA Ready](https://img.shields.io/badge/PWA-Offline%20Ready-0052cc.svg)](https://mbaldwinsmith.github.io/Optometry/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18.3-61dafb.svg)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8.svg)](https://tailwindcss.com/)
+[![License: Commercial](https://img.shields.io/badge/License-Commercial-0a2569.svg)](LICENSE)
+[![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub%20Pages-success.svg)](https://mbaldwinsmith.github.io/Optometry/)
+
 A clinical-grade, offline-first Progressive Web Application (PWA) designed for **EliteSight HomeCare**. The portal automates the processing of Care Home optometry consultation spreadsheets, performing real-time optical prescription (Spex Rx) parsing, plain-English dementia-friendly summary generation, NHS GOS 3 vs. Private billing, automated 2-year recall calculation, and instant export of pixel-perfect A4 clinical reports and invoices.
 
 ---
@@ -110,7 +117,34 @@ A clinical-grade, offline-first Progressive Web Application (PWA) designed for *
 
 ---
 
-## 🏢 Company Details
+## 🌐 Deployment to GitHub Pages
+
+The application includes an automated CI/CD GitHub Actions workflow in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+
+To deploy:
+1. Navigate to your repository on GitHub: **Settings** &rarr; **Pages**.
+2. Under **Build and deployment** &rarr; **Source**, select **GitHub Actions**.
+3. Push changes to `main`:
+   ```bash
+   git push origin main
+   ```
+4. Your application will be live at:
+   **`https://mbaldwinsmith.github.io/Optometry/`**
+
+---
+
+## 🛠️ Technology Stack
+
+* **Core:** [React 18](https://react.dev/), [TypeScript 5.7](https://www.typescriptlang.org/)
+* **Build Tooling:** [Vite 6](https://vitejs.dev/)
+* **Styling & UI:** [Tailwind CSS 3.4](https://tailwindcss.com/), [Lucide React Icons](https://lucide.dev/)
+* **CSV Parsing:** [PapaParse](https://www.papaparse.com/)
+* **Client-Side PDF & ZIP:** [jsPDF](https://github.com/parallax/jsPDF), [html2canvas](https://html2canvas.hertzen.com/), [JSZip](https://stuk.github.io/jszip/)
+* **PWA Engine:** [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) (Workbox Service Worker)
+
+---
+
+## 🏢 Company & Commercial Details
 
 * **Company:** EliteSight HomeCare Ltd
 * **Company Registration No:** `16396660` (England & Wales)
@@ -122,6 +156,6 @@ A clinical-grade, offline-first Progressive Web Application (PWA) designed for *
 
 ## 📄 License
 
-This software and its branding assets are proprietary and confidential to **EliteSight HomeCare Ltd**. Unauthorized copying, distribution, modification, or commercial exploitation is strictly prohibited.
+This software and its branding assets are proprietary and confidential to **EliteSight HomeCare Ltd**. Unauthorized copying, distribution, modification, or commercial exploitation is strictly prohibited under the terms of the [Commercial Software License](LICENSE).
 
 Copyright &copy; 2026 EliteSight HomeCare Ltd. All Rights Reserved.

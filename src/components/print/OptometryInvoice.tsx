@@ -37,7 +37,7 @@ export const OptometryInvoice: React.FC<OptometryInvoiceProps> = ({ patient }) =
               <div className="font-bold text-slate-900 text-sm">{patient.residentFullName}</div>
               <div className="text-slate-700">{patient.careHome}</div>
               <div className="text-slate-500">{patient.postCode}</div>
-              <div className="text-[10px] text-slate-400 mt-1">DOB: {patient.dob} | Blink ID: {patient.blinkId}</div>
+              <div className="text-[10px] text-slate-400 mt-1">DOB: {patient.dob} | ID: {patient.blinkId}</div>
             </div>
 
             <div className="bg-brand-soft border border-brand-soft-dark rounded-md p-3 text-[11px] flex flex-col justify-between">

@@ -10,6 +10,7 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
   const rx = patient.spexRx;
   const dispense = patient.dispense;
   const dementia = patient.dementiaExplanation;
+  const isMultifocal = dispense.lensType === 'Bifocal Lenses' || dispense.lensType === 'Varifocal / Progressive Lenses';
 
   return (
     <div className="font-sans text-slate-800 text-xs">
@@ -71,7 +72,7 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
               <span className="font-semibold text-slate-700">{patient.dob}</span>
             </div>
             <div>
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Blink Patient ID</span>
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">ID</span>
               <span className="font-mono font-semibold text-brand-navy">{patient.blinkId}</span>
             </div>
             <div>
@@ -130,13 +131,13 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
             </div>
           </div>
 
-          {/* Plain English Dementia & Carer Explanation Box */}
+          {/* Eyecare Guide */}
           <div className="mb-3.5 border-2 border-brand-blue/30 bg-blue-50/40 rounded-md p-3">
             <div className="flex items-center justify-between mb-1.5 border-b border-brand-blue/20 pb-1">
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-brand-blue inline-block"></span>
                 <h3 className="font-bold text-xs uppercase tracking-wider text-brand-navy font-display">
-                  Dementia &amp; Carer Eyecare Guide (Plain English)
+                  Eyecare Guide
                 </h3>
               </div>
               <span className="text-[10px] bg-brand-soft text-brand-navy border border-brand-soft-dark px-2 py-0.5 rounded font-semibold">
@@ -148,26 +149,38 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
               {dementia.summary}
             </p>
 
-            <div className="grid grid-cols-2 gap-2 text-[11px] bg-white border border-slate-200 rounded p-2.5 mb-2">
-              <div>
+            {isMultifocal ? (
+              <div className="bg-white border border-slate-200 rounded p-2.5 mb-2 text-[11px]">
                 <div className="font-bold text-slate-800 flex items-center gap-1 mb-0.5">
                   <span className="text-brand-blue font-extrabold">👓</span>
-                  <span>Distance Vision &amp; Room Glasses</span>
+                  <span>All-in-One Spectacles ({dispense.lensType})</span>
                 </div>
                 <p className="text-[10px] text-slate-600 leading-tight">
-                  {dementia.distanceAdvice || 'Wear for watching television, dining room activities, and walking.'}
+                  {dementia.multifocalAdvice || 'Look straight ahead for distance and TV; look through the lower portion for reading and meals.'}
                 </p>
               </div>
-              <div>
-                <div className="font-bold text-slate-800 flex items-center gap-1 mb-0.5">
-                  <span className="text-brand-blue font-extrabold">📖</span>
-                  <span>Reading &amp; Close Work Glasses</span>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 text-[11px] bg-white border border-slate-200 rounded p-2.5 mb-2">
+                <div>
+                  <div className="font-bold text-slate-800 flex items-center gap-1 mb-0.5">
+                    <span className="text-brand-blue font-extrabold">👓</span>
+                    <span>Distance Vision &amp; Room Glasses</span>
+                  </div>
+                  <p className="text-[10px] text-slate-600 leading-tight">
+                    {dementia.distanceAdvice || (dispense.distFrame && dispense.distFrame !== '-' ? `Wear ${dispense.distFrame} for TV and walking.` : 'No separate distance glasses required.')}
+                  </p>
                 </div>
-                <p className="text-[10px] text-slate-600 leading-tight">
-                  {dementia.nearAdvice || 'Wear when sitting down to read, look at letters/photos, or puzzles.'}
-                </p>
+                <div>
+                  <div className="font-bold text-slate-800 flex items-center gap-1 mb-0.5">
+                    <span className="text-brand-blue font-extrabold">📖</span>
+                    <span>Reading &amp; Close Work Glasses</span>
+                  </div>
+                  <p className="text-[10px] text-slate-600 leading-tight">
+                    {dementia.nearAdvice || (dispense.nearFrame && dispense.nearFrame !== '-' ? `Wear ${dispense.nearFrame} for reading and meals.` : 'No separate reading glasses required.')}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="text-[10px] text-slate-700 bg-slate-100/80 rounded p-1.5 flex items-center justify-between">
               <div>
@@ -183,14 +196,23 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
               <span className="text-[10px] font-normal text-brand-soft">{dispense.lensType}</span>
             </div>
             <div className="border border-t-0 border-slate-200 rounded-b-md p-3 bg-white grid grid-cols-3 gap-3 text-[11px]">
-              <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Distance Frame</span>
-                <span className="font-bold text-slate-800">{dispense.distFrame || 'None issued'}</span>
-              </div>
-              <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Reading / Near Frame</span>
-                <span className="font-bold text-slate-800">{dispense.nearFrame || 'None issued'}</span>
-              </div>
+              {isMultifocal ? (
+                <div className="col-span-2 bg-slate-50 p-2 rounded border border-slate-200">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Multifocal / Bifocal Frame</span>
+                  <span className="font-bold text-slate-800">{dispense.bifocalFrame || dispense.distFrame || dispense.nearFrame || 'Frame issued'}</span>
+                </div>
+              ) : (
+                <>
+                  <div className="bg-slate-50 p-2 rounded border border-slate-200">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Distance Frame</span>
+                    <span className="font-bold text-slate-800">{dispense.distFrame || 'None issued'}</span>
+                  </div>
+                  <div className="bg-slate-50 p-2 rounded border border-slate-200">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Reading / Near Frame</span>
+                    <span className="font-bold text-slate-800">{dispense.nearFrame || 'None issued'}</span>
+                  </div>
+                </>
+              )}
               <div className="bg-slate-50 p-2 rounded border border-slate-200">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Voucher / Funding</span>
                 <span className="font-bold text-brand-navy">{patient.funding === 'NHS' ? patient.voucherType || 'GOS 3' : 'Private Dispense'}</span>

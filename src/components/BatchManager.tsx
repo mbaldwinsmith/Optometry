@@ -81,7 +81,7 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
     if (filterType === 'unseen') return !p.seen;
     if (filterType === 'nhs') return p.funding === 'NHS';
     if (filterType === 'private') return p.funding === 'Private';
-    if (filterType === 'specs') return p.dispense.distFrame !== '-' || p.dispense.nearFrame !== '-';
+    if (filterType === 'specs') return (p.dispense.distFrame && p.dispense.distFrame !== '-') || (p.dispense.nearFrame && p.dispense.nearFrame !== '-') || (p.dispense.bifocalFrame && p.dispense.bifocalFrame !== '-');
     return true;
   });
 
@@ -210,7 +210,7 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search resident, Blink ID, ref..."
+                placeholder="Search resident, ID, ref..."
                 className="w-full bg-slate-50 border border-slate-300 rounded-lg pl-9 pr-3 py-1.5 text-xs focus:ring-1 focus:ring-brand-blue outline-none"
               />
             </div>
@@ -267,7 +267,7 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
                     <div className="text-[10px] text-slate-500 mt-0.5 flex items-center gap-2">
                       <span>DOB: {p.dob}</span>
                       <span>•</span>
-                      <span className="font-mono text-slate-400">{p.blinkId}</span>
+                      <span className="font-mono text-slate-400">ID: {p.blinkId}</span>
                     </div>
                   </div>
                   <ChevronRight className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-brand-blue' : 'text-slate-300'}`} />

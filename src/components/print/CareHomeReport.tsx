@@ -30,7 +30,7 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
         </div>
 
         {/* Top KPI Ribbon */}
-        <div className="grid grid-cols-5 gap-2.5 mb-4">
+        <div className="grid grid-cols-4 gap-3 mb-4">
           <div className="bg-brand-soft border border-brand-soft-dark rounded-md p-2 text-center">
             <div className="text-[9px] uppercase tracking-wider font-semibold text-brand-navy">Total Patients</div>
             <div className="text-base font-bold text-brand-navy mt-0.5">{summary.totalPatients}</div>
@@ -47,17 +47,13 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
             <div className="text-[9px] uppercase tracking-wider font-semibold text-purple-800">Spectacles Ordered</div>
             <div className="text-base font-bold text-purple-700 mt-0.5">{summary.spectaclesOrderedCount}</div>
           </div>
-          <div className="bg-amber-50 border border-amber-200 rounded-md p-2 text-center">
-            <div className="text-[9px] uppercase tracking-wider font-semibold text-amber-800">Exceptions / Unseen</div>
-            <div className="text-base font-bold text-amber-700 mt-0.5">{summary.unseenPatientsCount}</div>
-          </div>
         </div>
 
-        {/* SECTION 1: Financial & GOS Voucher Summary */}
+        {/* SECTION 1: Resident Eyecare & Voucher Summary */}
         <div className="mb-4">
           <div className="flex items-center justify-between bg-brand-navy text-white px-3 py-1.5 rounded-t-md">
             <h2 className="font-bold text-xs uppercase tracking-wider">Section 1: Resident Eyecare &amp; Voucher Statement</h2>
-            <span className="text-[10px] font-medium text-brand-soft">Terms: 7 Days from Visit</span>
+            <span className="text-[10px] font-medium text-brand-soft">Visit Overview</span>
           </div>
           <div className="border border-t-0 border-slate-200 rounded-b-md overflow-hidden">
             <table className="w-full text-left border-collapse text-[10px]">
@@ -66,17 +62,20 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
                   <th className="py-1 px-2.5 w-6">#</th>
                   <th className="py-1 px-2.5">Resident</th>
                   <th className="py-1 px-2.5">DOB</th>
-                  <th className="py-1 px-2.5">Blink ID</th>
+                  <th className="py-1 px-2.5">ID</th>
                   <th className="py-1 px-2.5">Funding</th>
                   <th className="py-1 px-2.5">Eyewear Ordered</th>
-                  <th className="py-1 px-2.5 text-right">Amount</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {summary.seenPatients.map((p, idx) => {
                   const frames: string[] = [];
-                  if (p.dispense.distFrame && p.dispense.distFrame !== '-') frames.push('Dist: ' + p.dispense.distFrame);
-                  if (p.dispense.nearFrame && p.dispense.nearFrame !== '-') frames.push('Near: ' + p.dispense.nearFrame);
+                  if (p.dispense.bifocalFrame && p.dispense.bifocalFrame !== '-') {
+                    frames.push(`${p.dispense.lensType}: ${p.dispense.bifocalFrame}`);
+                  } else {
+                    if (p.dispense.distFrame && p.dispense.distFrame !== '-') frames.push(`Dist: ${p.dispense.distFrame}`);
+                    if (p.dispense.nearFrame && p.dispense.nearFrame !== '-') frames.push(`Near: ${p.dispense.nearFrame}`);
+                  }
                   const framesText = frames.length > 0 ? frames.join(' | ') : 'No new glasses';
 
                   return (
@@ -90,22 +89,11 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
                           {p.funding}
                         </span>
                       </td>
-                      <td className="py-1 px-2.5 text-slate-700 truncate max-w-[220px]">{framesText}</td>
-                      <td className="py-1 px-2.5 text-right font-semibold text-slate-900">£{p.totalAmount.toFixed(2)}</td>
+                      <td className="py-1 px-2.5 text-slate-700 truncate max-w-[280px]">{framesText}</td>
                     </tr>
                   );
                 })}
               </tbody>
-              <tfoot>
-                <tr className="bg-brand-soft/80 border-t-2 border-brand-navy font-bold text-brand-navy text-[11px]">
-                  <td colSpan={6} className="py-1.5 px-2.5 text-right uppercase tracking-wider">
-                    Total Private Copay / Care Home Balance:
-                  </td>
-                  <td className="py-1.5 px-2.5 text-right text-brand-navy font-extrabold text-xs">
-                    £{summary.totalRevenue.toFixed(2)}
-                  </td>
-                </tr>
-              </tfoot>
             </table>
           </div>
         </div>
@@ -176,7 +164,7 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
           <span className="font-semibold text-slate-700">{COMPANY_DETAILS.name}</span> | Reg No: {COMPANY_DETAILS.regNo}
         </div>
         <div className="font-medium text-slate-600">
-          Bank: {COMPANY_DETAILS.bankName} | Sort: {COMPANY_DETAILS.sortCode} | Acc: {COMPANY_DETAILS.accountNo}
+          Tel: {COMPANY_DETAILS.phone} | {COMPANY_DETAILS.email}
         </div>
       </div>
     </div>

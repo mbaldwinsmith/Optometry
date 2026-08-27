@@ -1,5 +1,5 @@
 import React from 'react';
-import { PatientRow, EyeRx } from '../types/optometry';
+import { PatientRow, EyeRx, LensTypeOption } from '../types/optometry';
 import { calculateOptometryLineItems, calculateTotalAmount } from '../utils/pricing';
 import { generateDementiaCareExplanation } from '../utils/dementiaCareExplainer';
 import { Edit3, FileText, Receipt, Eye } from 'lucide-react';
@@ -60,6 +60,34 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
     });
   };
 
+  const handleLensTypeChange = (lensType: LensTypeOption) => {
+    const updatedDispense = {
+      ...patient.dispense,
+      lensType,
+    };
+
+    const dementia = generateDementiaCareExplanation(
+      patient.residentFullName,
+      patient.spexRx,
+      updatedDispense,
+      patient.notes
+    );
+
+    const updatedLineItems = calculateOptometryLineItems(
+      patient.funding,
+      updatedDispense,
+      patient.spexRx.hasPrescription
+    );
+
+    onUpdatePatient({
+      ...patient,
+      dispense: updatedDispense,
+      dementiaExplanation: dementia,
+      lineItems: updatedLineItems,
+      totalAmount: calculateTotalAmount(updatedLineItems),
+    });
+  };
+
   const handleDispenseChange = (field: string, value: any) => {
     const updatedDispense = {
       ...patient.dispense,
@@ -92,6 +120,8 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
     onUpdatePatient({ ...patient, [field]: value });
   };
 
+  const isMultifocal = patient.dispense.lensType === 'Bifocal Lenses' || patient.dispense.lensType === 'Varifocal / Progressive Lenses';
+
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm space-y-4 text-xs">
       {/* Header */}
@@ -108,7 +138,7 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
         <div className="flex items-center gap-2 text-[11px]">
           <span className="font-mono text-brand-blue font-bold">{patient.reportRef}</span>
           <span className="text-slate-300">|</span>
-          <span className="font-mono text-slate-600">Blink: {patient.blinkId}</span>
+          <span className="font-mono text-slate-600">ID: {patient.blinkId}</span>
         </div>
       </div>
 
@@ -302,34 +332,69 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
         </div>
       </div>
 
-      {/* Frame Dispensing Details */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {/* Lens Type & Spectacle Dispensing Details */}
+      <div className="border border-slate-200 rounded-lg p-3 bg-white space-y-3">
         <div>
-          <label className="font-semibold text-slate-700 block mb-1">Distance Frame Model &amp; Colour</label>
-          <input
-            type="text"
-            value={patient.dispense.distFrame || ''}
-            onChange={(e) => handleDispenseChange('distFrame', e.target.value)}
-            className="w-full border border-slate-300 rounded p-2 text-xs focus:ring-1 focus:ring-brand-blue outline-none"
-            placeholder="e.g. Solo 837 Purple 52"
-          />
+          <label className="font-bold text-slate-700 block uppercase tracking-wider text-[10px] mb-1.5">
+            Lens &amp; Dispensing Configuration
+          </label>
+          <select
+            value={patient.dispense.lensType}
+            onChange={(e) => handleLensTypeChange(e.target.value as LensTypeOption)}
+            className="w-full border border-slate-300 rounded-lg p-2 text-xs bg-slate-50 focus:ring-1 focus:ring-brand-blue outline-none font-semibold text-slate-800"
+          >
+            <option value="Single Vision (Distance & Near)">Single Vision (Separate Distance & Near Pairs)</option>
+            <option value="Single Vision Near (Reading Only)">Single Vision Near (Reading Only)</option>
+            <option value="Single Vision Distance Only">Single Vision Distance Only</option>
+            <option value="Bifocal Lenses">Bifocal Lenses (All-in-One)</option>
+            <option value="Varifocal / Progressive Lenses">Varifocal / Progressive Lenses (All-in-One)</option>
+            <option value="No Spectacles Required">No Spectacles Required</option>
+          </select>
         </div>
-        <div>
-          <label className="font-semibold text-slate-700 block mb-1">Reading / Near Frame Model &amp; Colour</label>
-          <input
-            type="text"
-            value={patient.dispense.nearFrame || ''}
-            onChange={(e) => handleDispenseChange('nearFrame', e.target.value)}
-            className="w-full border border-slate-300 rounded p-2 text-xs focus:ring-1 focus:ring-brand-blue outline-none"
-            placeholder="e.g. Solo 226 Bronze Flex Hinge"
-          />
-        </div>
+
+        {isMultifocal ? (
+          <div>
+            <label className="font-semibold text-slate-700 block mb-1">
+              {patient.dispense.lensType} Frame Model &amp; Colour
+            </label>
+            <input
+              type="text"
+              value={patient.dispense.bifocalFrame || patient.dispense.distFrame || ''}
+              onChange={(e) => handleDispenseChange('bifocalFrame', e.target.value)}
+              className="w-full border border-slate-300 rounded p-2 text-xs focus:ring-1 focus:ring-brand-blue outline-none"
+              placeholder="e.g. Stepper SI 6012 Titanium Wine"
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="font-semibold text-slate-700 block mb-1">Distance Frame Model &amp; Colour</label>
+              <input
+                type="text"
+                value={patient.dispense.distFrame || ''}
+                onChange={(e) => handleDispenseChange('distFrame', e.target.value)}
+                className="w-full border border-slate-300 rounded p-2 text-xs focus:ring-1 focus:ring-brand-blue outline-none"
+                placeholder="e.g. Solo 837 Purple 52 (or '-' if not needed)"
+              />
+            </div>
+            <div>
+              <label className="font-semibold text-slate-700 block mb-1">Reading / Near Frame Model &amp; Colour</label>
+              <input
+                type="text"
+                value={patient.dispense.nearFrame || ''}
+                onChange={(e) => handleDispenseChange('nearFrame', e.target.value)}
+                className="w-full border border-slate-300 rounded p-2 text-xs focus:ring-1 focus:ring-brand-blue outline-none"
+                placeholder="e.g. Solo 226 Bronze Flex Hinge (or '-' if not needed)"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Dementia & Carer Explanation Live Override */}
+      {/* Eyecare Guide Live Override */}
       <div>
         <label className="font-semibold text-slate-700 block mb-1">
-          Dementia &amp; Carer Vision Summary (Plain English)
+          Eyecare Guide Vision Summary (Plain English)
         </label>
         <textarea
           rows={3}

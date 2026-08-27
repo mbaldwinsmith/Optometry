@@ -1,4 +1,5 @@
 export interface RawCsvRow {
+  'ID'?: string;
   'Blink ID'?: string;
   'Patient ID'?: string;
   'Care Home'?: string;
@@ -29,6 +30,7 @@ export interface RawCsvRow {
   'Left Int Add'?: string;
   'Distance PD'?: string;
   'Near PD'?: string;
+  'Lens Type'?: string;
   'Dispense Details'?: string;
   'Voucher Type'?: string;
   'Notes'?: string;
@@ -56,12 +58,20 @@ export interface SpexRx {
   rawSummary?: string;
 }
 
+export type LensTypeOption =
+  | 'Single Vision (Distance & Near)'
+  | 'Single Vision Near (Reading Only)'
+  | 'Single Vision Distance Only'
+  | 'Bifocal Lenses'
+  | 'Varifocal / Progressive Lenses'
+  | 'No Spectacles Required';
+
 export interface DispenseInfo {
-  distFrame: string;
-  nearFrame: string;
-  interFrame?: string;
-  lensType: string;
-  voucherType: string;
+  lensType: LensTypeOption;
+  distFrame: string;      // e.g. "Solo 837 Purple 52" or "-"
+  nearFrame: string;      // e.g. "Solo 226 Bronze Flex Hinge" or "-"
+  bifocalFrame?: string;  // e.g. "Stepper SI 6012 Titanium Wine" for Bifocal/Varifocal
+  voucherType: string;    // e.g. "GOS 3 (Voucher A)"
   caseCloth: boolean;
 }
 
@@ -70,6 +80,7 @@ export interface DementiaExplanation {
   spectacleInstructions: string[];
   distanceAdvice: string;
   nearAdvice: string;
+  multifocalAdvice?: string;
   frameIdentification: string;
   careAndCleaning: string;
   emergencySos: string;
@@ -87,7 +98,7 @@ export interface InvoiceLineItem {
 
 export interface PatientRow {
   id: string;
-  blinkId: string;
+  blinkId: string; // Patient ID
   careHome: string;
   postCode: string;
   appointmentDate: string;

@@ -19,45 +19,39 @@ export function calculateOptometryLineItems(
       amount: PRICING_CONFIG.NHS_SIGHT_TEST,
     });
 
-    if (dispense.distFrame && dispense.nearFrame) {
+    if (dispense.bifocalFrame && dispense.bifocalFrame !== '-') {
       items.push({
-        id: 'item-gos-dist-pair',
-        description: `Spectacle Dispense (Distance) - ${dispense.distFrame} (NHS GOS 3 Covered)`,
+        id: 'item-gos-bifocal-pair',
+        description: `Spectacle Dispense (${dispense.lensType}) - ${dispense.bifocalFrame} (NHS GOS 3 Covered)`,
         quantity: 1,
         unit: 'Pair',
         unitPrice: 0.0,
         vatRate: PRICING_CONFIG.VAT_RATE,
         amount: 0.0,
       });
-      items.push({
-        id: 'item-gos-near-pair',
-        description: `Spectacle Dispense (Near / Reading) - ${dispense.nearFrame} (NHS GOS 3 Covered)`,
-        quantity: 1,
-        unit: 'Pair',
-        unitPrice: 0.0,
-        vatRate: PRICING_CONFIG.VAT_RATE,
-        amount: 0.0,
-      });
-    } else if (dispense.distFrame) {
-      items.push({
-        id: 'item-gos-dist-pair',
-        description: `Spectacle Dispense (Distance) - ${dispense.distFrame} (NHS GOS 3 Covered)`,
-        quantity: 1,
-        unit: 'Pair',
-        unitPrice: 0.0,
-        vatRate: PRICING_CONFIG.VAT_RATE,
-        amount: 0.0,
-      });
-    } else if (dispense.nearFrame) {
-      items.push({
-        id: 'item-gos-near-pair',
-        description: `Spectacle Dispense (Near / Reading) - ${dispense.nearFrame} (NHS GOS 3 Covered)`,
-        quantity: 1,
-        unit: 'Pair',
-        unitPrice: 0.0,
-        vatRate: PRICING_CONFIG.VAT_RATE,
-        amount: 0.0,
-      });
+    } else {
+      if (dispense.distFrame && dispense.distFrame !== '-' && !dispense.distFrame.toLowerCase().includes('existing')) {
+        items.push({
+          id: 'item-gos-dist-pair',
+          description: `Spectacle Dispense (Distance) - ${dispense.distFrame} (NHS GOS 3 Covered)`,
+          quantity: 1,
+          unit: 'Pair',
+          unitPrice: 0.0,
+          vatRate: PRICING_CONFIG.VAT_RATE,
+          amount: 0.0,
+        });
+      }
+      if (dispense.nearFrame && dispense.nearFrame !== '-' && !dispense.nearFrame.toLowerCase().includes('existing')) {
+        items.push({
+          id: 'item-gos-near-pair',
+          description: `Spectacle Dispense (Near / Reading) - ${dispense.nearFrame} (NHS GOS 3 Covered)`,
+          quantity: 1,
+          unit: 'Pair',
+          unitPrice: 0.0,
+          vatRate: PRICING_CONFIG.VAT_RATE,
+          amount: 0.0,
+        });
+      }
     }
   } else {
     // Private Funding
@@ -71,28 +65,40 @@ export function calculateOptometryLineItems(
       amount: PRICING_CONFIG.PRIVATE_SIGHT_TEST,
     });
 
-    if (dispense.distFrame) {
+    if (dispense.bifocalFrame && dispense.bifocalFrame !== '-') {
       items.push({
-        id: 'item-private-dist',
-        description: `Complete Spectacles (Distance) - ${dispense.distFrame} with Scratch-Resistant Lenses`,
+        id: 'item-private-bifocal',
+        description: `Complete Spectacles (${dispense.lensType}) - ${dispense.bifocalFrame}`,
         quantity: 1,
         unit: 'Pair',
-        unitPrice: PRICING_CONFIG.PRIVATE_FRAME_STANDARD,
+        unitPrice: PRICING_CONFIG.PRIVATE_FRAME_PREMIUM,
         vatRate: PRICING_CONFIG.VAT_RATE,
-        amount: PRICING_CONFIG.PRIVATE_FRAME_STANDARD,
+        amount: PRICING_CONFIG.PRIVATE_FRAME_PREMIUM,
       });
-    }
+    } else {
+      if (dispense.distFrame && dispense.distFrame !== '-' && !dispense.distFrame.toLowerCase().includes('existing')) {
+        items.push({
+          id: 'item-private-dist',
+          description: `Complete Spectacles (Distance) - ${dispense.distFrame} with Scratch-Resistant Lenses`,
+          quantity: 1,
+          unit: 'Pair',
+          unitPrice: PRICING_CONFIG.PRIVATE_FRAME_STANDARD,
+          vatRate: PRICING_CONFIG.VAT_RATE,
+          amount: PRICING_CONFIG.PRIVATE_FRAME_STANDARD,
+        });
+      }
 
-    if (dispense.nearFrame) {
-      items.push({
-        id: 'item-private-near',
-        description: `Complete Spectacles (Near / Reading) - ${dispense.nearFrame} with Scratch-Resistant Lenses`,
-        quantity: 1,
-        unit: 'Pair',
-        unitPrice: PRICING_CONFIG.PRIVATE_FRAME_STANDARD,
-        vatRate: PRICING_CONFIG.VAT_RATE,
-        amount: PRICING_CONFIG.PRIVATE_FRAME_STANDARD,
-      });
+      if (dispense.nearFrame && dispense.nearFrame !== '-' && !dispense.nearFrame.toLowerCase().includes('existing')) {
+        items.push({
+          id: 'item-private-near',
+          description: `Complete Spectacles (Near / Reading) - ${dispense.nearFrame} with Scratch-Resistant Lenses`,
+          quantity: 1,
+          unit: 'Pair',
+          unitPrice: PRICING_CONFIG.PRIVATE_FRAME_STANDARD,
+          vatRate: PRICING_CONFIG.VAT_RATE,
+          amount: PRICING_CONFIG.PRIVATE_FRAME_STANDARD,
+        });
+      }
     }
   }
 
