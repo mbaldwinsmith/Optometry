@@ -18,6 +18,8 @@ export function parseClinicalNotes(notesText?: string): {
   pd: string;
   sosAdviceGiven: boolean;
   cleanedNotes: string;
+  hasMar: boolean;
+  hasReactions: boolean;
 } {
   if (!notesText) {
     return {
@@ -25,30 +27,40 @@ export function parseClinicalNotes(notesText?: string): {
       nearFrame: '',
       bifocalFrame: '',
       lensType: 'Single Vision (Distance & Near)',
-      voucherType: 'GOS 3',
+      voucherType: 'NHS Funded',
       pd: '64',
       sosAdviceGiven: true,
       cleanedNotes: '',
+      hasMar: false,
+      hasReactions: false,
     };
   }
 
   const text = notesText.trim();
 
-  // 1. Bifocal / Varifocal Frame e.g. "Bifocal: Stepper SI 6012 Titanium Wine"
+  // 1. Extras detection (MAR & Reactions)
+  const hasMar = /MAR|anti-reflect|anti\s*reflect|anti-glare|antiglare/i.test(text);
+  const hasReactions = /reactions?|transitions?|photochromic/i.test(text);
+
+  // 2. Bifocal / Varifocal Frame e.g. "Bifocal: Stepper SI 6012 Titanium Wine"
   const biMatch = text.match(/(?:Bifocal|Varifocal|Multifocal|Progressive)(?:\s*frame)?:\s*([^;\n\r\.]+)/i);
   let bifocalFrame = biMatch ? cleanExtractedFrame(biMatch[1]) : '';
 
-  // 2. Distance frame e.g. "Dist: Solo 837 purple 52." or "Dist frame: ..."
+  // 3. Distance frame e.g. "Dist: Solo 837 purple 52." or "Dist frame: ..."
   const distMatch = text.match(/(?:Dist|Distance)(?:\s*frame)?:\s*([^;\n\r\.]+)/i);
   let distFrame = distMatch ? cleanExtractedFrame(distMatch[1]) : '';
 
-  // 3. Near frame e.g. "Near: Solo 226 bronze flex hinge." or "Reading: ..."
+  // 4. Near frame e.g. "Near: Solo 226 bronze flex hinge." or "Reading: ..."
   const nearMatch = text.match(/(?:Near|Reading|Read)(?:\s*frame)?:\s*([^;\n\r\.]+)/i);
   let nearFrame = nearMatch ? cleanExtractedFrame(nearMatch[1]) : '';
 
-  // 4. Lens Type detection
+  // 5. Lens Type detection
   let lensType: LensTypeOption = 'Single Vision (Distance & Near)';
-  if (/varifocal|progressive/i.test(text)) {
+  if (/no\s*spectacles\s*required|no\s*glasses\s*needed/i.test(text)) {
+    lensType = 'No Spectacles Required';
+  } else if (/existing\s*(?:kept|retained|in\s*good\s*order)|no\s*(?:prescription\s*)?change/i.test(text) && !distFrame && !nearFrame && !bifocalFrame) {
+    lensType = 'Existing Spectacles Retained (No Change Needed)';
+  } else if (/varifocal|progressive/i.test(text)) {
     lensType = 'Varifocal / Progressive Lenses';
   } else if (/bifocal/i.test(text)) {
     lensType = 'Bifocal Lenses';
@@ -60,14 +72,10 @@ export function parseClinicalNotes(notesText?: string): {
     lensType = 'Single Vision (Distance & Near)';
   }
 
-  // 5. Voucher Type / GOS
-  let voucherType = '';
-  if (/GOS\s*3/i.test(text)) voucherType = 'GOS 3 Optical Voucher';
-  if (/Voucher\s*A/i.test(text)) voucherType = 'GOS 3 (Voucher A)';
-  if (/Voucher\s*B/i.test(text)) voucherType = 'GOS 3 (Voucher B)';
-  if (!voucherType && (distFrame || nearFrame || bifocalFrame)) voucherType = 'GOS 3';
+  // 6. Voucher Type / Funding
+  let voucherType = 'NHS Funded';
 
-  // 6. PD e.g. "Distance PDs 32 R+L" or "PD 64"
+  // 7. PD e.g. "Distance PDs 32 R+L" or "PD 64"
   let pd = '64';
   const pdMonoMatch = text.match(/(?:PDs?|Distance PDs?):\s*(\d{2})\s*(?:R\+?L|R\s*and\s*L|both)/i);
   if (pdMonoMatch) {
@@ -78,7 +86,7 @@ export function parseClinicalNotes(notesText?: string): {
     if (pdTotalMatch) pd = pdTotalMatch[1];
   }
 
-  // 7. SOS Advice
+  // 8. SOS Advice
   const sosAdviceGiven = /SOS advice/i.test(text) || true;
 
   // Titlecase frame names for clean professional presentation
@@ -95,5 +103,7 @@ export function parseClinicalNotes(notesText?: string): {
     pd,
     sosAdviceGiven,
     cleanedNotes: text,
+    hasMar,
+    hasReactions,
   };
 }

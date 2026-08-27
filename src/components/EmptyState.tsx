@@ -66,7 +66,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           Generate Pixel-Perfect Eyecare Summaries &amp; Invoices
         </h2>
         <p className="text-sm text-slate-600 max-w-2xl mx-auto mt-2 leading-relaxed">
-          Ingest PMS exports or care home consultation spreadsheets in seconds. Automatically format Spex prescriptions, generate plain-English eyecare guides, calculate +2 year recalls, and export A4 clinical PDFs.
+          Ingest PMS exports or care home consultation spreadsheets in seconds. Automatically format Spex prescriptions, generate plain-English eyecare guides, calculate +1 year recalls, and export A4 clinical PDFs.
         </p>
       </div>
 
@@ -168,9 +168,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
           <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2.5">
             <CalendarCheck className="w-4 h-4" />
           </div>
-          <h4 className="font-bold text-slate-900 text-xs mb-1">+2 Year Automatic Recall</h4>
+          <h4 className="font-bold text-slate-900 text-xs mb-1">+1 Year Automatic Recall</h4>
           <p className="text-[11px] text-slate-500 leading-snug">
-            Calculates 24-month examination recalls with care home scheduling register and NHS GOS 3 status.
+            Calculates 12-month examination recalls with care home scheduling register and NHS funding status.
           </p>
         </div>
 

@@ -127,7 +127,7 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
           const careHome = toTitleCase(careHomeRaw) || careHomeName || 'Care Home';
           const postCode = postCodeRaw.toUpperCase() || careHomePostCode || '';
           const appointmentDate = normalizeDate(appDateRaw) || careHomeAppointmentDate || normalizeDate(new Date().toISOString());
-          const nextExamDate = calculateNextExamDate(appointmentDate, 2);
+          const nextExamDate = calculateNextExamDate(appointmentDate, 1);
           const dob = normalizeDate(dobRaw) || '01/01/1940';
           const optometrist = toTitleCase(optometristRaw) || careHomeOptometrist || 'Dr. Emma Taylor MCOptom';
           const funding = parseFunding(fundingRaw);
@@ -174,8 +174,10 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
             distFrame: parsedNotes.distFrame || (parsedNotes.lensType === 'Single Vision Distance Only' ? 'Solo 837 Purple 52' : '-'),
             nearFrame: parsedNotes.nearFrame || (parsedNotes.lensType === 'Single Vision Near (Reading Only)' || spexRx.rightEye.nearAdd !== '-' ? 'Solo 226 Bronze Flex Hinge' : '-'),
             bifocalFrame: parsedNotes.bifocalFrame || (parsedNotes.lensType === 'Bifocal Lenses' ? 'Stepper SI 6012 Titanium Wine' : ''),
-            voucherType: parsedNotes.voucherType || (funding === 'NHS' ? 'GOS 3 (Voucher A)' : 'Private'),
+            voucherType: parsedNotes.voucherType || (funding === 'NHS' ? 'NHS Funded' : 'Private'),
             caseCloth: true,
+            hasMar: parsedNotes.hasMar,
+            hasReactions: parsedNotes.hasReactions,
           };
 
           const dementiaExplanation = generateDementiaCareExplanation(
@@ -207,7 +209,7 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
             seen,
             reasonNotSeen,
             funding,
-            voucherType: dispense.voucherType,
+            voucherType: dispense.voucherType || (funding === 'NHS' ? 'NHS Funded' : 'Private'),
             spexRx,
             dispense,
             dementiaExplanation,
@@ -243,7 +245,7 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
           blinkId: p.blinkId,
           lastExamDate: p.appointmentDate,
           nextExamDate: p.nextExamDate,
-          recallReason: 'Routine 2-Year Domiciliary Eye Examination',
+          recallReason: 'Routine 1-Year Domiciliary Eye Examination',
           funding: p.funding,
         }));
 

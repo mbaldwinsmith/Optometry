@@ -8,12 +8,12 @@ export async function runSelfVerificationTests(): Promise<{ passed: boolean; res
   const results: string[] = [];
   let passed = true;
 
-  // Test 1: Date arithmetic (+2 years recall)
+  // Test 1: Date arithmetic (+1 year recall)
   const baseDate = '24/08/2026';
-  const expectedNext = '24/08/2028';
-  const calculatedNext = calculateNextExamDate(baseDate, 2);
+  const expectedNext = '24/08/2027';
+  const calculatedNext = calculateNextExamDate(baseDate, 1);
   if (calculatedNext === expectedNext) {
-    results.push('✓ Test 1 Passed: 2-Year recall date calculation accurate (' + calculatedNext + ')');
+    results.push('✓ Test 1 Passed: 1-Year recall date calculation accurate (' + calculatedNext + ')');
   } else {
     passed = false;
     results.push('✗ Test 1 Failed: Expected ' + expectedNext + ', got ' + calculatedNext);

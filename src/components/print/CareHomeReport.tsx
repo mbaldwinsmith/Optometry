@@ -15,6 +15,9 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
           <div className="flex items-center gap-3">
             <img src="./logo.png" alt="EliteSight HomeCare" className="h-11 w-11 object-contain" />
             <div>
+              <div className="text-xs font-black uppercase tracking-wider text-brand-blue font-display">
+                {COMPANY_DETAILS.name}
+              </div>
               <h1 className="text-lg font-bold text-brand-navy uppercase tracking-tight font-display">
                 Care Home Optometry Report
               </h1>
@@ -40,7 +43,7 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
             <div className="text-base font-bold text-emerald-700 mt-0.5">{summary.seenPatientsCount}</div>
           </div>
           <div className="bg-blue-50 border border-blue-200 rounded-md p-2 text-center">
-            <div className="text-[9px] uppercase tracking-wider font-semibold text-blue-800">NHS (GOS 3)</div>
+            <div className="text-[9px] uppercase tracking-wider font-semibold text-blue-800">NHS Funded</div>
             <div className="text-base font-bold text-blue-700 mt-0.5">{summary.nhsCount}</div>
           </div>
           <div className="bg-purple-50 border border-purple-200 rounded-md p-2 text-center">
@@ -63,20 +66,27 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
                   <th className="py-1 px-2.5">Resident</th>
                   <th className="py-1 px-2.5">DOB</th>
                   <th className="py-1 px-2.5">ID</th>
-                  <th className="py-1 px-2.5">Funding</th>
-                  <th className="py-1 px-2.5">Eyewear Ordered</th>
+                  <th className="py-1 px-2.5">Eyewear / Outcome</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {summary.seenPatients.map((p, idx) => {
                   const frames: string[] = [];
-                  if (p.dispense.bifocalFrame && p.dispense.bifocalFrame !== '-') {
+                  if (p.dispense.lensType === 'Existing Spectacles Retained (No Change Needed)') {
+                    frames.push('Existing glasses retained (No change needed)');
+                  } else if (p.dispense.lensType === 'No Spectacles Required') {
+                    frames.push('No spectacles required');
+                  } else if (p.dispense.bifocalFrame && p.dispense.bifocalFrame !== '-' && !p.dispense.bifocalFrame.toLowerCase().includes('existing')) {
                     frames.push(`${p.dispense.lensType}: ${p.dispense.bifocalFrame}`);
                   } else {
-                    if (p.dispense.distFrame && p.dispense.distFrame !== '-') frames.push(`Dist: ${p.dispense.distFrame}`);
-                    if (p.dispense.nearFrame && p.dispense.nearFrame !== '-') frames.push(`Near: ${p.dispense.nearFrame}`);
+                    if (p.dispense.distFrame && p.dispense.distFrame !== '-' && !p.dispense.distFrame.toLowerCase().includes('existing')) frames.push(`Dist: ${p.dispense.distFrame}`);
+                    if (p.dispense.nearFrame && p.dispense.nearFrame !== '-' && !p.dispense.nearFrame.toLowerCase().includes('existing')) frames.push(`Near: ${p.dispense.nearFrame}`);
                   }
-                  const framesText = frames.length > 0 ? frames.join(' | ') : 'No new glasses';
+
+                  if (p.dispense.hasMar) frames.push('MAR Coating');
+                  if (p.dispense.hasReactions) frames.push('Reactions');
+
+                  const framesText = frames.length > 0 ? frames.join(' | ') : 'Existing glasses retained';
 
                   return (
                     <tr key={p.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}>
@@ -84,12 +94,7 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
                       <td className="py-1 px-2.5 font-semibold text-slate-800">{p.residentFullName}</td>
                       <td className="py-1 px-2.5 text-slate-600">{p.dob}</td>
                       <td className="py-1 px-2.5 font-mono text-brand-navy">{p.blinkId}</td>
-                      <td className="py-1 px-2.5 font-semibold">
-                        <span className={`px-1.5 py-0.5 rounded text-[9px] ${p.funding === 'NHS' ? 'bg-emerald-50 text-emerald-800' : 'bg-purple-50 text-purple-800'}`}>
-                          {p.funding}
-                        </span>
-                      </td>
-                      <td className="py-1 px-2.5 text-slate-700 truncate max-w-[280px]">{framesText}</td>
+                      <td className="py-1 px-2.5 text-slate-700 truncate max-w-[340px]">{framesText}</td>
                     </tr>
                   );
                 })}
