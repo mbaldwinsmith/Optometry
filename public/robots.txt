@@ -1,4 +1,3 @@
 User-agent: *
 Allow: /
-
-Sitemap: https://mbaldwinsmith.github.io/Audiology/sitemap.xml
+Sitemap: https://mbaldwinsmith.github.io/Optometry/sitemap.xml

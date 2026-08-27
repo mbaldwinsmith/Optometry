@@ -1,17 +1,104 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Favicons & Mobile Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon.png" />
     <link rel="icon" type="image/x-icon" href="./favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#0A2569" />
-    <meta name="description" content="EliteSight HomeCare — Domiciliary Optometry Portal & Care Home Eyecare Document Generator" />
-    <title>EliteSight HomeCare — Optometry Portal</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="./logo.svg" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+
+    <!-- Standard Primary SEO Metadata -->
+    <title>EliteSight HomeCare — Care Home Optometry Batch Portal &amp; Clinical Generator</title>
+    <meta name="title" content="EliteSight HomeCare — Care Home Optometry Batch Portal &amp; Clinical Generator" />
+    <meta name="description" content="Clinical-grade offline PWA for Care Home optometry consultation processing, Spex Rx prescription formatting, plain-English eyecare guides, 2-year recall calculation, and instant A4 PDF/ZIP exports with GDPR zero-retention." />
+    <meta name="keywords" content="EliteSight HomeCare, Optometry Portal, Care Home Eyecare, Domiciliary Optometry, Spex Rx, Eye Examination, GOS 3 Optical Voucher, Dementia Eyecare, 2 Year Recall, Clinical Reports, Medical Invoicing, PWA, GDPR Zero Retention, Cambridge" />
+    <meta name="author" content="EliteSight HomeCare Ltd" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://mbaldwinsmith.github.io/Optometry/" />
+
+    <!-- Responsive & Theme Settings -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a2569" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="EliteSight Optometry" />
+    <meta name="application-name" content="EliteSight Optometry Portal" />
+
+    <!-- Open Graph / Facebook / LinkedIn / WhatsApp -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mbaldwinsmith.github.io/Optometry/" />
+    <meta property="og:title" content="EliteSight HomeCare — Care Home Optometry Batch Portal" />
+    <meta property="og:description" content="Automated Care Home optometry consultation processing, Spex Rx parsing, plain-English eyecare guides, +2 year recalls, and 1-click batch ZIP PDF exports." />
+    <meta property="og:image" content="https://mbaldwinsmith.github.io/Optometry/og-image.png" />
+    <meta property="og:image:secure_url" content="https://mbaldwinsmith.github.io/Optometry/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="EliteSight HomeCare Optometry Portal Social Card Preview" />
+    <meta property="og:site_name" content="EliteSight HomeCare" />
+    <meta property="og:locale" content="en_GB" />
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://mbaldwinsmith.github.io/Optometry/" />
+    <meta name="twitter:title" content="EliteSight HomeCare — Optometry Batch Portal &amp; Clinical Generator" />
+    <meta name="twitter:description" content="Clinical-grade offline PWA for Care Home optometry batch ingestion, automated NHS GOS 3 billing, and instant A4 PDF/ZIP exports." />
+    <meta name="twitter:image" content="https://mbaldwinsmith.github.io/Optometry/twitter-card.png" />
+    <meta name="twitter:image:alt" content="EliteSight HomeCare Optometry Portal Social Card" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Structured Data (JSON-LD) for Search Engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "@id": "https://mbaldwinsmith.github.io/Optometry/#app",
+          "name": "EliteSight HomeCare Optometry Portal",
+          "url": "https://mbaldwinsmith.github.io/Optometry/",
+          "description": "Care Home Optometry Batch Generator, Spex Rx Normalizer, Eyecare Guides & Clinical Report PWA with GDPR Zero-Retention.",
+          "applicationCategory": "HealthApplication",
+          "operatingSystem": "All",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "GBP"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "EliteSight HomeCare Ltd",
+            "url": "https://elitesighthomecare.com"
+          }
+        },
+        {
+          "@type": "MedicalBusiness",
+          "@id": "https://mbaldwinsmith.github.io/Optometry/#business",
+          "name": "EliteSight HomeCare Ltd",
+          "legalName": "EliteSight HomeCare Ltd",
+          "telephone": "0800 865 4488",
+          "email": "info@elitesighthomecare.com",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "60B Green End Road",
+            "addressLocality": "Cambridge",
+            "postalCode": "CB4 1RY",
+            "addressCountry": "GB"
+          },
+          "priceRange": "£0 - £120",
+          "medicalSpecialty": "Optometry"
+        }
+      ]
+    }
+    </script>
   </head>
-  <body class="bg-slate-100 text-slate-900 min-h-screen antialiased selection:bg-brand-soft-dark selection:text-brand-navy">
+  <body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
