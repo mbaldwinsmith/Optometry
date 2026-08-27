@@ -49,10 +49,10 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
           </div>
         </div>
 
-        {/* SECTION 1: Resident Eyecare & Voucher Summary */}
+        {/* SECTION 1: Residents Seen */}
         <div className="mb-4">
           <div className="flex items-center justify-between bg-brand-navy text-white px-3 py-1.5 rounded-t-md">
-            <h2 className="font-bold text-xs uppercase tracking-wider">Section 1: Resident Eyecare &amp; Voucher Statement</h2>
+            <h2 className="font-bold text-xs uppercase tracking-wider">Section 1: Residents Seen</h2>
             <span className="text-[10px] font-medium text-brand-soft">Visit Overview</span>
           </div>
           <div className="border border-t-0 border-slate-200 rounded-b-md overflow-hidden">
@@ -98,11 +98,11 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
           </div>
         </div>
 
-        {/* SECTION 2: 2-Year Recall Register */}
+        {/* SECTION 2: Next Appointment Due */}
         <div className="mb-4">
           <div className="flex items-center justify-between bg-brand-navy text-white px-3 py-1.5 rounded-t-md">
-            <h2 className="font-bold text-xs uppercase tracking-wider">Section 2: 2-Year Recall Register (+24 Months)</h2>
-            <span className="text-[10px] text-brand-soft">Next Routine Visit Schedule</span>
+            <h2 className="font-bold text-xs uppercase tracking-wider">Section 2: Next Appointment Due</h2>
+            <span className="text-[10px] text-brand-soft">Routine Recall Schedule</span>
           </div>
           <div className="border border-t-0 border-slate-200 rounded-b-md p-2.5 bg-white">
             <div className="grid grid-cols-2 gap-2 text-[10px]">
@@ -120,16 +120,16 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
             </div>
             {summary.recalls.length > 8 && (
               <p className="text-[9px] text-slate-400 text-right mt-1 italic">
-                + {summary.recalls.length - 8} more residents scheduled for 2-year recall.
+                + {summary.recalls.length - 8} more residents scheduled for recall.
               </p>
             )}
           </div>
         </div>
 
-        {/* SECTION 3: Exceptions & Reschedules */}
+        {/* SECTION 3: Residents Not Seen */}
         <div>
           <div className="bg-brand-navy text-white px-3 py-1.5 rounded-t-md">
-            <h2 className="font-bold text-xs uppercase tracking-wider">Section 3: Exceptions &amp; Reschedules Required</h2>
+            <h2 className="font-bold text-xs uppercase tracking-wider">Section 3: Residents Not Seen</h2>
           </div>
           <div className="border border-t-0 border-slate-200 rounded-b-md p-2.5 bg-white">
             {summary.unseenPatients.length > 0 ? (
