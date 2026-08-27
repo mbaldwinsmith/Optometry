@@ -1,4 +1,13 @@
 import { LensTypeOption } from '../types/optometry';
+import { toTitleCase } from './cleaners';
+
+function cleanExtractedFrame(raw: string): string {
+  if (!raw) return '';
+  return raw
+    .replace(/(?:Near|Reading|Read|Dist|Distance|Bifocal|Varifocal|Multifocal|PD|Distance PDs?|SOS|GOS).*$/i, '')
+    .replace(/[;\.\,\-]+$/, '')
+    .trim();
+}
 
 export function parseClinicalNotes(notesText?: string): {
   distFrame: string;
@@ -25,17 +34,17 @@ export function parseClinicalNotes(notesText?: string): {
 
   const text = notesText.trim();
 
-  // 1. Bifocal / Varifocal Frame
-  const biMatch = text.match(/(?:Bifocal|Varifocal|Multifocal|Progressive|Bifocal frame|Varifocal frame):\s*([^;\n\r,]+)/i);
-  const bifocalFrame = biMatch ? biMatch[1].trim() : '';
+  // 1. Bifocal / Varifocal Frame e.g. "Bifocal: Stepper SI 6012 Titanium Wine"
+  const biMatch = text.match(/(?:Bifocal|Varifocal|Multifocal|Progressive)(?:\s*frame)?:\s*([^;\n\r\.]+)/i);
+  let bifocalFrame = biMatch ? cleanExtractedFrame(biMatch[1]) : '';
 
-  // 2. Distance frame: e.g. "Dist: solo 837 purple 52"
-  const distMatch = text.match(/(?:Dist|Distance|Distance frame|Dist frame):\s*([^;\n\r,]+)/i);
-  let distFrame = distMatch ? distMatch[1].trim() : '';
+  // 2. Distance frame e.g. "Dist: Solo 837 purple 52." or "Dist frame: ..."
+  const distMatch = text.match(/(?:Dist|Distance)(?:\s*frame)?:\s*([^;\n\r\.]+)/i);
+  let distFrame = distMatch ? cleanExtractedFrame(distMatch[1]) : '';
 
-  // 3. Near frame: e.g. "Near: solo 226 bronze flex hinge"
-  const nearMatch = text.match(/(?:Near|Reading|Near frame|Read frame|Read):\s*([^;\n\r,]+)/i);
-  let nearFrame = nearMatch ? nearMatch[1].trim() : '';
+  // 3. Near frame e.g. "Near: Solo 226 bronze flex hinge." or "Reading: ..."
+  const nearMatch = text.match(/(?:Near|Reading|Read)(?:\s*frame)?:\s*([^;\n\r\.]+)/i);
+  let nearFrame = nearMatch ? cleanExtractedFrame(nearMatch[1]) : '';
 
   // 4. Lens Type detection
   let lensType: LensTypeOption = 'Single Vision (Distance & Near)';
@@ -49,15 +58,6 @@ export function parseClinicalNotes(notesText?: string): {
     lensType = 'Single Vision Near (Reading Only)';
   } else if (distFrame && nearFrame) {
     lensType = 'Single Vision (Distance & Near)';
-  }
-
-  // If bifocal/varifocal frame is captured but placed in Dist/Near, consolidate
-  if ((lensType === 'Bifocal Lenses' || lensType === 'Varifocal / Progressive Lenses') && !bifocalFrame) {
-    const frameMatch = text.match(/(?:Frame):\s*([^;\n\r,]+)/i);
-    if (frameMatch) {
-      distFrame = '';
-      nearFrame = '';
-    }
   }
 
   // 5. Voucher Type / GOS
@@ -74,12 +74,17 @@ export function parseClinicalNotes(notesText?: string): {
     const mono = parseInt(pdMonoMatch[1], 10);
     pd = (mono * 2).toString();
   } else {
-    const pdTotalMatch = text.match(/(?:PDs?|PD):\s*(\d{2})/i);
+    const pdTotalMatch = text.match(/(?:Distance\s*)?PDs?:\s*(\d{2})/i);
     if (pdTotalMatch) pd = pdTotalMatch[1];
   }
 
   // 7. SOS Advice
   const sosAdviceGiven = /SOS advice/i.test(text) || true;
+
+  // Titlecase frame names for clean professional presentation
+  if (distFrame) distFrame = toTitleCase(distFrame);
+  if (nearFrame) nearFrame = toTitleCase(nearFrame);
+  if (bifocalFrame) bifocalFrame = toTitleCase(bifocalFrame);
 
   return {
     distFrame,
