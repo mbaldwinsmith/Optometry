@@ -21,6 +21,9 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
             <div className="flex items-center gap-3">
               <img src="./logo.png" alt="EliteSight HomeCare" className="h-11 w-11 object-contain" />
               <div>
+                <div className="text-xs font-black uppercase tracking-wider text-brand-blue font-display">
+                  {COMPANY_DETAILS.name}
+                </div>
                 <h1 className="text-lg font-extrabold text-brand-navy uppercase tracking-tight font-display">
                   Eyecare &amp; Vision Summary
                 </h1>
@@ -47,7 +50,7 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
               <strong className="text-brand-navy font-semibold">{patient.appointmentDate}</strong>
             </div>
             <div>
-              <span className="text-slate-500">Next Due (+2 Yrs): </span>
+              <span className="text-slate-500">Next Due (+1 Yr): </span>
               <strong className="text-brand-blue font-bold">{patient.nextExamDate}</strong>
             </div>
             <div className="text-right">
@@ -56,7 +59,7 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
                   ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                   : 'bg-amber-100 text-amber-900 border border-amber-300'
               }`}>
-                {patient.funding === 'NHS' ? 'NHS Funded (GOS)' : 'Private Funded'}
+                {patient.funding === 'NHS' ? 'NHS Funded' : 'Private Funded'}
               </span>
             </div>
           </div>
@@ -159,6 +162,26 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
                   {dementia.multifocalAdvice || 'Look straight ahead for distance and TV; look through the lower portion for reading and meals.'}
                 </p>
               </div>
+            ) : dispense.lensType === 'Existing Spectacles Retained (No Change Needed)' ? (
+              <div className="bg-white border border-slate-200 rounded p-2.5 mb-2 text-[11px]">
+                <div className="font-bold text-slate-800 flex items-center gap-1 mb-0.5">
+                  <span className="text-brand-blue font-extrabold">👓</span>
+                  <span>Existing Spectacles Retained</span>
+                </div>
+                <p className="text-[10px] text-slate-600 leading-tight">
+                  Resident was fully tested. Existing spectacles are in good order and suitable for continued daily wear without prescription changes.
+                </p>
+              </div>
+            ) : dispense.lensType === 'No Spectacles Required' ? (
+              <div className="bg-white border border-slate-200 rounded p-2.5 mb-2 text-[11px]">
+                <div className="font-bold text-slate-800 flex items-center gap-1 mb-0.5">
+                  <span className="text-brand-blue font-extrabold">👓</span>
+                  <span>No Spectacles Required</span>
+                </div>
+                <p className="text-[10px] text-slate-600 leading-tight">
+                  Resident was fully examined. Visual health is good and no corrective spectacles are required at this time.
+                </p>
+              </div>
             ) : (
               <div className="grid grid-cols-2 gap-2 text-[11px] bg-white border border-slate-200 rounded p-2.5 mb-2">
                 <div>
@@ -201,6 +224,16 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">Multifocal / Bifocal Frame</span>
                   <span className="font-bold text-slate-800">{dispense.bifocalFrame || dispense.distFrame || dispense.nearFrame || 'Frame issued'}</span>
                 </div>
+              ) : dispense.lensType === 'Existing Spectacles Retained (No Change Needed)' ? (
+                <div className="col-span-2 bg-slate-50 p-2 rounded border border-slate-200">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Eyewear Status</span>
+                  <span className="font-bold text-slate-800">Existing spectacles retained (No change needed)</span>
+                </div>
+              ) : dispense.lensType === 'No Spectacles Required' ? (
+                <div className="col-span-2 bg-slate-50 p-2 rounded border border-slate-200">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Eyewear Status</span>
+                  <span className="font-bold text-slate-800">No spectacles required</span>
+                </div>
               ) : (
                 <>
                   <div className="bg-slate-50 p-2 rounded border border-slate-200">
@@ -214,13 +247,18 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
                 </>
               )}
               <div className="bg-slate-50 p-2 rounded border border-slate-200">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Voucher / Funding</span>
-                <span className="font-bold text-brand-navy">{patient.funding === 'NHS' ? patient.voucherType || 'GOS 3' : 'Private Dispense'}</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Funding Scheme</span>
+                <span className="font-bold text-brand-navy">{patient.funding === 'NHS' ? 'NHS Funded' : 'Private Dispense'}</span>
+                {(dispense.hasMar || dispense.hasReactions) && (
+                  <div className="mt-1 text-[9px] text-brand-blue font-semibold">
+                    Extras: {[dispense.hasMar ? 'MAR' : '', dispense.hasReactions ? 'Reactions' : ''].filter(Boolean).join(', ')}
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* SOS Advice & Clinical Notes */}
+          {/* SOS Advice Warning Box */}
           <div className="mb-3 border-2 border-amber-300 bg-amber-50/70 rounded-md p-2.5">
             <div className="flex items-center gap-1.5 mb-1">
               <span className="text-amber-800 font-extrabold text-[11px] uppercase tracking-wide">
@@ -233,11 +271,6 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
             <p className="text-[10px] text-amber-950 leading-snug">
               Contact EliteSight HomeCare (<strong>0800 865 4488</strong>) or care staff immediately if resident experiences <strong>sudden vision loss, dark shadows/curtains, flashes of light with new floaters, or severe eye pain with redness</strong>.
             </p>
-            {patient.notes && (
-              <div className="mt-1.5 pt-1.5 border-t border-amber-200 text-[10px] text-slate-700 italic">
-                <strong>Clinician Consultation Notes:</strong> {patient.notes}
-              </div>
-            )}
           </div>
         </div>
 

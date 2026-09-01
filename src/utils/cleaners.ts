@@ -41,7 +41,7 @@ export function normalizeDate(dateInput?: string | null): string {
   return str;
 }
 
-export function calculateNextExamDate(lastExamDateStr: string, addYears: number = 2): string {
+export function calculateNextExamDate(lastExamDateStr: string, addYears: number = 1): string {
   if (!lastExamDateStr) return '';
   const parts = lastExamDateStr.split('/');
   if (parts.length === 3) {

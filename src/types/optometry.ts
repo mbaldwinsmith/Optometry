@@ -64,6 +64,7 @@ export type LensTypeOption =
   | 'Single Vision Distance Only'
   | 'Bifocal Lenses'
   | 'Varifocal / Progressive Lenses'
+  | 'Existing Spectacles Retained (No Change Needed)'
   | 'No Spectacles Required';
 
 export interface DispenseInfo {
@@ -71,8 +72,10 @@ export interface DispenseInfo {
   distFrame: string;      // e.g. "Solo 837 Purple 52" or "-"
   nearFrame: string;      // e.g. "Solo 226 Bronze Flex Hinge" or "-"
   bifocalFrame?: string;  // e.g. "Stepper SI 6012 Titanium Wine" for Bifocal/Varifocal
-  voucherType: string;    // e.g. "GOS 3 (Voucher A)"
+  voucherType?: string;   // e.g. "NHS Funded"
   caseCloth: boolean;
+  hasMar?: boolean;       // MAR Multi-Anti-Reflective Coating (£40)
+  hasReactions?: boolean; // Reactions / Photochromic Lenses (£60)
 }
 
 export interface DementiaExplanation {

@@ -17,9 +17,9 @@ export const COMPANY_DETAILS: CompanyDetails = {
 
 export const PRICING_CONFIG = {
   NHS_SIGHT_TEST: 0.0,
-  PRIVATE_SIGHT_TEST: 60.0,
-  GOS3_VOUCHER_A: 42.40,
-  GOS3_VOUCHER_B: 65.00,
+  PRIVATE_SIGHT_TEST: 0.0, // Eye tests are always free, even for private patients
+  MAR_EXTRA: 40.0,
+  REACTIONS_EXTRA: 60.0,
   PRIVATE_FRAME_STANDARD: 45.00,
   PRIVATE_FRAME_PREMIUM: 75.00,
   PAYMENT_TERMS_DAYS: 7,

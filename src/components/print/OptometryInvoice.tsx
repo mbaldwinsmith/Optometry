@@ -16,6 +16,9 @@ export const OptometryInvoice: React.FC<OptometryInvoiceProps> = ({ patient }) =
             <div className="flex items-center gap-3">
               <img src="./logo.png" alt="EliteSight HomeCare" className="h-11 w-11 object-contain" />
               <div>
+                <div className="text-xs font-black uppercase tracking-wider text-brand-blue font-display">
+                  {COMPANY_DETAILS.name}
+                </div>
                 <h1 className="text-lg font-bold text-brand-navy uppercase tracking-tight font-display">
                   Optometry Statement / Invoice
                 </h1>
@@ -45,7 +48,7 @@ export const OptometryInvoice: React.FC<OptometryInvoiceProps> = ({ patient }) =
                 <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Payment Summary</span>
                 <div className="flex justify-between items-center text-slate-700 mb-1">
                   <span>Funding Scheme:</span>
-                  <strong className="text-brand-navy">{patient.funding === 'NHS' ? 'NHS (GOS 3 Optical Claim)' : 'Private Funding'}</strong>
+                  <strong className="text-brand-navy">{patient.funding === 'NHS' ? 'NHS Funded' : 'Private Funding'}</strong>
                 </div>
                 <div className="flex justify-between items-center text-slate-700">
                   <span>Due Date:</span>

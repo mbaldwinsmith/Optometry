@@ -158,7 +158,7 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
                   : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
               }`}
             >
-              NHS (GOS 3)
+              NHS Funded
             </button>
             <button
               type="button"
@@ -169,7 +169,7 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
                   : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
               }`}
             >
-              Private (£60)
+              Private (Free Test)
             </button>
           </div>
         </div>
@@ -189,7 +189,7 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
 
         <div>
           <label className="font-bold text-slate-700 block uppercase tracking-wider text-[10px] mb-1.5 flex items-center justify-between">
-            <span>Next Exam (+2 Yrs)</span>
+            <span>Next Exam (+1 Yr)</span>
             <span className="text-[9px] text-brand-blue font-semibold">Recall Due</span>
           </label>
           <input
@@ -348,6 +348,7 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
             <option value="Single Vision Distance Only">Single Vision Distance Only</option>
             <option value="Bifocal Lenses">Bifocal Lenses (All-in-One)</option>
             <option value="Varifocal / Progressive Lenses">Varifocal / Progressive Lenses (All-in-One)</option>
+            <option value="Existing Spectacles Retained (No Change Needed)">Existing Spectacles Retained (No Change Needed)</option>
             <option value="No Spectacles Required">No Spectacles Required</option>
           </select>
         </div>
@@ -364,6 +365,12 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
               className="w-full border border-slate-300 rounded p-2 text-xs focus:ring-1 focus:ring-brand-blue outline-none"
               placeholder="e.g. Stepper SI 6012 Titanium Wine"
             />
+          </div>
+        ) : patient.dispense.lensType === 'Existing Spectacles Retained (No Change Needed)' || patient.dispense.lensType === 'No Spectacles Required' ? (
+          <div className="p-2.5 bg-slate-50 rounded border border-slate-200 text-slate-600 text-xs">
+            {patient.dispense.lensType === 'Existing Spectacles Retained (No Change Needed)'
+              ? '✓ Resident was fully tested. Current existing frames are retained in good order (no new frames ordered).'
+              : '✓ Resident was fully tested. No spectacles are required.'}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -391,6 +398,61 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
         )}
       </div>
 
+      {/* Lens Extras & Coatings (MAR & Reactions) */}
+      <div className="border border-slate-200 rounded-lg p-3 bg-white space-y-2">
+        <div className="flex items-center justify-between">
+          <label className="font-bold text-slate-700 block uppercase tracking-wider text-[10px]">
+            Lens Extras &amp; Upgrades (Paid by All Residents)
+          </label>
+          <span className="text-[10px] text-slate-400 font-medium">Applicable to NHS &amp; Private</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <label className={`flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition ${
+            patient.dispense.hasMar
+              ? 'bg-blue-50/70 border-brand-blue text-brand-navy shadow-xs'
+              : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+          }`}>
+            <input
+              type="checkbox"
+              checked={!!patient.dispense.hasMar}
+              onChange={(e) => handleDispenseChange('hasMar', e.target.checked)}
+              className="mt-0.5 rounded text-brand-blue focus:ring-brand-blue h-4 w-4"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="font-bold text-xs flex items-center justify-between">
+                <span>MAR Anti-Glare Coating</span>
+                <span className="font-mono text-brand-blue font-extrabold ml-2">+£40.00</span>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">
+                Multi-Anti-Reflective lens treatment for clarity and glare reduction.
+              </p>
+            </div>
+          </label>
+
+          <label className={`flex items-start gap-2.5 p-2.5 rounded-lg border cursor-pointer transition ${
+            patient.dispense.hasReactions
+              ? 'bg-purple-50/70 border-purple-400 text-purple-950 shadow-xs'
+              : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+          }`}>
+            <input
+              type="checkbox"
+              checked={!!patient.dispense.hasReactions}
+              onChange={(e) => handleDispenseChange('hasReactions', e.target.checked)}
+              className="mt-0.5 rounded text-purple-600 focus:ring-purple-500 h-4 w-4"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="font-bold text-xs flex items-center justify-between">
+                <span>Reactions Lenses</span>
+                <span className="font-mono text-purple-700 font-extrabold ml-2">+£60.00</span>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">
+                Photochromic lenses that adapt automatically to sunlight.
+              </p>
+            </div>
+          </label>
+        </div>
+      </div>
+
       {/* Eyecare Guide Live Override */}
       <div>
         <label className="font-semibold text-slate-700 block mb-1">
@@ -407,18 +469,6 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
             onUpdatePatient({ ...patient, dementiaExplanation: updatedDementia });
           }}
           className="w-full border border-slate-300 rounded p-2 text-xs focus:ring-1 focus:ring-brand-blue outline-none leading-relaxed"
-        />
-      </div>
-
-      {/* Clinical Consultation Notes */}
-      <div>
-        <label className="font-semibold text-slate-700 block mb-1">Clinician Consultation Notes</label>
-        <textarea
-          rows={2}
-          value={patient.notes || ''}
-          onChange={(e) => handleFieldChange('notes', e.target.value)}
-          className="w-full border border-slate-300 rounded p-2 text-xs focus:ring-1 focus:ring-brand-blue outline-none"
-          placeholder="Consultation notes, GOS 3 status, SOS advice..."
         />
       </div>
 
