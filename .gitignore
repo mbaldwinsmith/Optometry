@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local screenshots and patient data imports (privacy protection)
+temp_screenshots/
+screenshots/
+imports/
