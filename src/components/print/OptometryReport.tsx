@@ -1,6 +1,7 @@
 import React from 'react';
 import { PatientRow } from '../../types/optometry';
 import { COMPANY_DETAILS } from '../../utils/constants';
+import { formatDobDisplay } from '../../utils/cleaners';
 
 interface OptometryReportProps {
   patient: PatientRow;
@@ -72,7 +73,7 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
             </div>
             <div>
               <span className="text-[10px] uppercase font-bold text-slate-400 block">Date of Birth</span>
-              <span className="font-semibold text-slate-700">{patient.dob}</span>
+              <span className="font-semibold text-slate-700">{formatDobDisplay(patient.dob) || 'Not Provided'}</span>
             </div>
             <div>
               <span className="text-[10px] uppercase font-bold text-slate-400 block">ID</span>

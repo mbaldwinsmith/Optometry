@@ -100,3 +100,16 @@ export function parseFunding(fundingInput?: string | null): 'NHS' | 'Private' {
   }
   return 'NHS';
 }
+
+export const PLACEHOLDER_DOB = '01/01/1906';
+
+export function isPlaceholderDob(dob?: string | null): boolean {
+  if (!dob) return true;
+  const clean = dob.trim();
+  return clean === '01/01/1906' || clean === '1906-01-01' || clean === '01011906';
+}
+
+export function formatDobDisplay(dob?: string | null): string {
+  if (!dob || isPlaceholderDob(dob)) return '';
+  return dob;
+}

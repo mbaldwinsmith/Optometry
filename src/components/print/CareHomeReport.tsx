@@ -1,12 +1,15 @@
 import React from 'react';
 import { CareHomeSummary } from '../../types/optometry';
 import { COMPANY_DETAILS } from '../../utils/constants';
+import { formatDobDisplay, isPlaceholderDob } from '../../utils/cleaners';
 
 interface CareHomeReportProps {
   summary: CareHomeSummary;
 }
 
 export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
+  const hasSeenDob = summary.seenPatients.some((p) => !isPlaceholderDob(p.dob));
+
   return (
     <div className="a4-page p-8 md:p-10 font-sans text-slate-800 flex flex-col justify-between text-xs leading-relaxed">
       <div>
@@ -64,7 +67,7 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
                 <tr className="bg-brand-soft text-brand-navy font-semibold border-b border-slate-200">
                   <th className="py-1 px-2.5 w-6">#</th>
                   <th className="py-1 px-2.5">Resident</th>
-                  <th className="py-1 px-2.5">DOB</th>
+                  {hasSeenDob && <th className="py-1 px-2.5">DOB</th>}
                   <th className="py-1 px-2.5">ID</th>
                   <th className="py-1 px-2.5">Outcome</th>
                 </tr>
@@ -82,7 +85,7 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
                     <tr key={p.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}>
                       <td className="py-1 px-2.5 text-slate-400 font-mono">{idx + 1}</td>
                       <td className="py-1 px-2.5 font-semibold text-slate-800">{p.residentFullName}</td>
-                      <td className="py-1 px-2.5 text-slate-600">{p.dob}</td>
+                      {hasSeenDob && <td className="py-1 px-2.5 text-slate-600">{formatDobDisplay(p.dob)}</td>}
                       <td className="py-1 px-2.5 font-mono text-brand-navy">{p.blinkId}</td>
                       <td className="py-1 px-2.5 text-slate-700 font-medium">{outcomeText}</td>
                     </tr>
@@ -105,7 +108,9 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
                 <div key={idx} className="flex items-center justify-between p-1.5 bg-slate-50 border border-slate-200 rounded">
                   <div>
                     <strong className="text-slate-800">{r.patientName}</strong>
-                    <span className="text-slate-400 ml-1">({r.dob})</span>
+                    {r.dob && !isPlaceholderDob(r.dob) && (
+                      <span className="text-slate-400 ml-1">({formatDobDisplay(r.dob)})</span>
+                    )}
                   </div>
                   <div className="font-mono font-bold text-brand-blue">
                     Due: {r.nextExamDate}
