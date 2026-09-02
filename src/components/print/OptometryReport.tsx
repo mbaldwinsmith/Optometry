@@ -20,7 +20,14 @@ export const OptometryReport: React.FC<OptometryReportProps> = ({ patient }) => 
           {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-brand-navy pb-3 mb-4">
             <div className="flex items-center gap-3">
-              <img src="./logo.png" alt="EliteSight HomeCare" className="h-11 w-11 object-contain" />
+              <img
+                src="./logo.png"
+                alt="EliteSight HomeCare"
+                width="44"
+                height="44"
+                className="h-11 w-11 object-contain flex-shrink-0"
+                style={{ width: '44px', height: '44px', minWidth: '44px', maxWidth: '44px', maxHeight: '44px', objectFit: 'contain' }}
+              />
               <div>
                 <div className="text-xs font-black uppercase tracking-wider text-brand-blue font-display">
                   {COMPANY_DETAILS.name}
