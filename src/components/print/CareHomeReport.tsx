@@ -66,27 +66,17 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
                   <th className="py-1 px-2.5">Resident</th>
                   <th className="py-1 px-2.5">DOB</th>
                   <th className="py-1 px-2.5">ID</th>
-                  <th className="py-1 px-2.5">Eyewear / Outcome</th>
+                  <th className="py-1 px-2.5">Outcome</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {summary.seenPatients.map((p, idx) => {
-                  const frames: string[] = [];
+                  let outcomeText = 'Spectacles ordered';
                   if (p.dispense.lensType === 'Existing Spectacles Retained (No Change Needed)') {
-                    frames.push('Existing glasses retained (No change needed)');
+                    outcomeText = 'Existing spectacles retained (No change needed)';
                   } else if (p.dispense.lensType === 'No Spectacles Required') {
-                    frames.push('No spectacles required');
-                  } else if (p.dispense.bifocalFrame && p.dispense.bifocalFrame !== '-' && !p.dispense.bifocalFrame.toLowerCase().includes('existing')) {
-                    frames.push(`${p.dispense.lensType}: ${p.dispense.bifocalFrame}`);
-                  } else {
-                    if (p.dispense.distFrame && p.dispense.distFrame !== '-' && !p.dispense.distFrame.toLowerCase().includes('existing')) frames.push(`Dist: ${p.dispense.distFrame}`);
-                    if (p.dispense.nearFrame && p.dispense.nearFrame !== '-' && !p.dispense.nearFrame.toLowerCase().includes('existing')) frames.push(`Near: ${p.dispense.nearFrame}`);
+                    outcomeText = 'No spectacles required';
                   }
-
-                  if (p.dispense.hasMar) frames.push('MAR Coating');
-                  if (p.dispense.hasReactions) frames.push('Reactions');
-
-                  const framesText = frames.length > 0 ? frames.join(' | ') : 'Existing glasses retained';
 
                   return (
                     <tr key={p.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}>
@@ -94,7 +84,7 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
                       <td className="py-1 px-2.5 font-semibold text-slate-800">{p.residentFullName}</td>
                       <td className="py-1 px-2.5 text-slate-600">{p.dob}</td>
                       <td className="py-1 px-2.5 font-mono text-brand-navy">{p.blinkId}</td>
-                      <td className="py-1 px-2.5 text-slate-700 truncate max-w-[340px]">{framesText}</td>
+                      <td className="py-1 px-2.5 text-slate-700 font-medium">{outcomeText}</td>
                     </tr>
                   );
                 })}

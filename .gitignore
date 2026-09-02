@@ -23,7 +23,13 @@ dist-ssr
 *.sln
 *.sw?
 
-# Local screenshots and patient data imports (privacy protection)
+# Local screenshots, patient data imports and exports (GDPR & privacy protection)
 temp_screenshots/
 screenshots/
 imports/
+exports/
+**/exports/
+temp_exports/
+public/*.csv
+*.csv
+!src/utils/sampleData.ts

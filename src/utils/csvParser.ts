@@ -171,9 +171,9 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
 
           const dispense: DispenseInfo = {
             lensType: parsedNotes.lensType,
-            distFrame: parsedNotes.distFrame || (parsedNotes.lensType === 'Single Vision Distance Only' ? 'Solo 837 Purple 52' : '-'),
-            nearFrame: parsedNotes.nearFrame || (parsedNotes.lensType === 'Single Vision Near (Reading Only)' || spexRx.rightEye.nearAdd !== '-' ? 'Solo 226 Bronze Flex Hinge' : '-'),
-            bifocalFrame: parsedNotes.bifocalFrame || (parsedNotes.lensType === 'Bifocal Lenses' ? 'Stepper SI 6012 Titanium Wine' : ''),
+            distFrame: parsedNotes.distFrame || (parsedNotes.lensType === 'Single Vision Distance Only' ? 'Distance Spectacles' : '-'),
+            nearFrame: parsedNotes.nearFrame || (parsedNotes.lensType === 'Single Vision Near (Reading Only)' || spexRx.rightEye.nearAdd !== '-' ? 'Reading Spectacles' : '-'),
+            bifocalFrame: parsedNotes.bifocalFrame || (parsedNotes.lensType === 'Bifocal Lenses' ? 'Bifocal Spectacles' : ''),
             voucherType: parsedNotes.voucherType || (funding === 'NHS' ? 'NHS Funded' : 'Private'),
             caseCloth: true,
             hasMar: parsedNotes.hasMar,
