@@ -142,6 +142,62 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
         </div>
       </div>
 
+      {/* Resident Demographics & Basic Details */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+        <div>
+          <label className="font-bold text-slate-700 block uppercase tracking-wider text-[10px] mb-1.5">
+            Resident First Name
+          </label>
+          <input
+            type="text"
+            value={patient.residentFirstName}
+            onChange={(e) => {
+              const first = e.target.value;
+              onUpdatePatient({
+                ...patient,
+                residentFirstName: first,
+                residentFullName: `${first} ${patient.residentSurname}`.trim(),
+              });
+            }}
+            className="w-full border border-slate-300 rounded p-1.5 text-xs bg-white focus:ring-1 focus:ring-brand-blue outline-none font-semibold"
+            placeholder="First Name"
+          />
+        </div>
+
+        <div>
+          <label className="font-bold text-slate-700 block uppercase tracking-wider text-[10px] mb-1.5">
+            Resident Surname
+          </label>
+          <input
+            type="text"
+            value={patient.residentSurname}
+            onChange={(e) => {
+              const sur = e.target.value;
+              onUpdatePatient({
+                ...patient,
+                residentSurname: sur,
+                residentFullName: `${patient.residentFirstName} ${sur}`.trim(),
+              });
+            }}
+            className="w-full border border-slate-300 rounded p-1.5 text-xs bg-white focus:ring-1 focus:ring-brand-blue outline-none font-semibold"
+            placeholder="Surname"
+          />
+        </div>
+
+        <div>
+          <label className="font-bold text-slate-700 block uppercase tracking-wider text-[10px] mb-1.5">
+            Date of Birth (DOB)
+          </label>
+          <input
+            type="text"
+            value={patient.dob}
+            onChange={(e) => handleFieldChange('dob', e.target.value)}
+            className="w-full border border-slate-300 rounded p-1.5 text-xs bg-white focus:ring-1 focus:ring-brand-blue outline-none font-mono"
+            placeholder="DD/MM/YYYY"
+          />
+        </div>
+      </div>
+
       {/* Funding Selector & Dates */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
         <div>
@@ -470,6 +526,35 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
           }}
           className="w-full border border-slate-300 rounded p-2 text-xs focus:ring-1 focus:ring-brand-blue outline-none leading-relaxed"
         />
+      </div>
+
+      {/* Clinical Notes & Reason Not Seen */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="font-semibold text-slate-700 block mb-1">
+            Clinical Notes
+          </label>
+          <input
+            type="text"
+            value={patient.notes || ''}
+            onChange={(e) => handleFieldChange('notes', e.target.value)}
+            className="w-full border border-slate-300 rounded p-2 text-xs focus:ring-1 focus:ring-brand-blue outline-none"
+            placeholder="e.g. SOS advice given. New reading pair issued."
+          />
+        </div>
+
+        <div>
+          <label className="font-semibold text-slate-700 block mb-1">
+            {patient.seen ? 'Reason Not Seen (if resident is marked DNA)' : 'Reason Not Seen (DNA)'}
+          </label>
+          <input
+            type="text"
+            value={patient.reasonNotSeen || ''}
+            onChange={(e) => handleFieldChange('reasonNotSeen', e.target.value)}
+            className="w-full border border-slate-300 rounded p-2 text-xs focus:ring-1 focus:ring-brand-blue outline-none"
+            placeholder="e.g. Resident resting in bed - family requested rescheduling"
+          />
+        </div>
       </div>
 
       {/* PDF Export Shortcuts */}

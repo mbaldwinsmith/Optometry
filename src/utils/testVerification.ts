@@ -1,4 +1,4 @@
-import { parseOptometryCsv } from './csvParser';
+import { parseOptometryCsv, generateCleanedCsv } from './csvParser';
 import { SAMPLE_OPTOMETRY_CSV } from './sampleData';
 import { calculateNextExamDate } from './cleaners';
 import { formatDioptre } from './rxParser';
@@ -54,6 +54,67 @@ export async function runSelfVerificationTests(): Promise<{ passed: boolean; res
   } else {
     passed = false;
     results.push('✗ Test 5 Failed: Dementia explanation missing patient name');
+  }
+
+  // Test 6: Cleaned CSV generation
+  const exportedCsv = generateCleanedCsv(parseRes.patients, true);
+  if (
+    exportedCsv.includes('Melanie') &&
+    exportedCsv.includes('Report Ref') &&
+    exportedCsv.includes('Lens Type') &&
+    exportedCsv.includes('MAR Coating')
+  ) {
+    results.push('✓ Test 6 Passed: generateCleanedCsv produced standardized CSV containing all clinical and administrative headers');
+  } else {
+    passed = false;
+    results.push('✗ Test 6 Failed: generateCleanedCsv output missing expected headers or patient data');
+  }
+
+  // Test 7: Lossless round-trip export & re-import with live edits
+  const editedPatients = [...parseRes.patients];
+  const targetPatient = { ...editedPatients[0] };
+  targetPatient.funding = 'Private';
+  targetPatient.spexRx = {
+    ...targetPatient.spexRx,
+    rightEye: {
+      ...targetPatient.spexRx.rightEye,
+      sph: '+3.25',
+      cyl: '-1.50',
+      axis: '90',
+    },
+  };
+  targetPatient.dispense = {
+    ...targetPatient.dispense,
+    lensType: 'Bifocal Lenses',
+    bifocalFrame: 'Stepper Titanium Wine 54',
+    hasMar: true,
+    hasReactions: true,
+  };
+  targetPatient.dementiaExplanation = {
+    ...targetPatient.dementiaExplanation,
+    summary: 'Custom clinical overview updated by optometrist during consultation.',
+  };
+  editedPatients[0] = targetPatient;
+
+  const editedCsvString = generateCleanedCsv(editedPatients, true);
+  const reimportedRes = await parseOptometryCsv(editedCsvString);
+  const reimportedPat = reimportedRes.patients[0];
+
+  if (
+    reimportedPat &&
+    reimportedPat.funding === 'Private' &&
+    reimportedPat.spexRx.rightEye.sph === '+3.25' &&
+    reimportedPat.spexRx.rightEye.cyl === '-1.50' &&
+    reimportedPat.dispense.lensType === 'Bifocal Lenses' &&
+    reimportedPat.dispense.bifocalFrame === 'Stepper Titanium Wine 54' &&
+    reimportedPat.dispense.hasMar === true &&
+    reimportedPat.dispense.hasReactions === true &&
+    reimportedPat.dementiaExplanation.summary === 'Custom clinical overview updated by optometrist during consultation.'
+  ) {
+    results.push('✓ Test 7 Passed: Lossless round-trip re-import verified (all live edits preserved exactly)');
+  } else {
+    passed = false;
+    results.push('✗ Test 7 Failed: Re-imported patient did not match live edits');
   }
 
   console.log('[Verification Suite]', passed ? 'ALL TESTS PASSED' : 'TESTS FAILED', results);

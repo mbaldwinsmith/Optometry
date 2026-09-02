@@ -17,6 +17,7 @@ interface NavbarProps {
   onFileUpload: (file: File) => void;
   onLoadSampleData: () => void;
   onPurgeData: () => void;
+  onExportCleanedCsv?: () => void;
   onLockSession: () => void;
   onOpenPinModal: (mode: 'unlock' | 'change') => void;
 }
@@ -26,6 +27,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onFileUpload,
   onLoadSampleData,
   onPurgeData,
+  onExportCleanedCsv,
   onLockSession,
   onOpenPinModal,
 }) => {
@@ -117,6 +119,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Upload className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Upload CSV</span>
             </button>
+
+            {summary && onExportCleanedCsv && (
+              <button
+                onClick={onExportCleanedCsv}
+                className="hidden sm:flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm"
+                title="Export edited consultation records as CSV"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export CSV</span>
+              </button>
+            )}
 
             {!summary && (
               <button

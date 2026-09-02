@@ -23,7 +23,8 @@ import {
   Archive,
   FileDown,
   Loader2,
-  Glasses
+  Glasses,
+  FileSpreadsheet,
 } from 'lucide-react';
 import {
   exportCareHomeReportPdf,
@@ -39,6 +40,7 @@ interface BatchManagerProps {
   onUpdatePatient: (updatedPatient: PatientRow) => void;
   onPrintSingle: () => void;
   onPrintBatch: () => void;
+  onExportCleanedCsv?: () => void;
   onExportBatchZip: () => void;
 }
 
@@ -53,6 +55,7 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
   onUpdatePatient,
   onPrintSingle,
   onPrintBatch: _onPrintBatch,
+  onExportCleanedCsv,
   onExportBatchZip,
 }) => {
   const [activeTab, setActiveTab] = useState<ViewMode>('care-home');
@@ -393,10 +396,21 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
                 <span>Print</span>
               </button>
 
+              {onExportCleanedCsv && (
+                <button
+                  onClick={onExportCleanedCsv}
+                  className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1.5"
+                  title="Download all resident records with live edits as CSV"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Export CSV</span>
+                </button>
+              )}
+
               <button
                 onClick={onExportBatchZip}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1.5"
-                title="Download all PDFs in an organized ZIP archive"
+                title="Download all PDFs and cleaned CSV in an organized ZIP archive"
               >
                 <Archive className="w-3.5 h-3.5" />
                 <span>Export Batch ZIP</span>

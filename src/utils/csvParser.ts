@@ -7,6 +7,7 @@ import {
   ParseResult,
   RecallItem,
   DispenseInfo,
+  LensTypeOption,
 } from '../types/optometry';
 import { toTitleCase, normalizeDate, calculateNextExamDate, addDaysToDate, parseBoolean, parseFunding } from './cleaners';
 import { generateReportRef, generateInvoiceNo, getCareHomeInitials, getPatientInitials } from './hash';
@@ -15,6 +16,34 @@ import { parseClinicalNotes } from './notesParser';
 import { generateDementiaCareExplanation } from './dementiaCareExplainer';
 import { calculateOptometryLineItems, calculateTotalAmount } from './pricing';
 import { CSV_REQUIRED_COLUMNS, PRICING_CONFIG } from './constants';
+
+export function parseLensType(raw?: string): LensTypeOption | null {
+  if (!raw) return null;
+  const s = raw.trim();
+  const lower = s.toLowerCase();
+  if (lower.includes('no spec') || lower.includes('no glasses') || lower === 'none') {
+    return 'No Spectacles Required';
+  }
+  if (lower.includes('existing') || lower.includes('retained') || lower.includes('no change')) {
+    return 'Existing Spectacles Retained (No Change Needed)';
+  }
+  if (lower.includes('varifocal') || lower.includes('progressive')) {
+    return 'Varifocal / Progressive Lenses';
+  }
+  if (lower.includes('bifocal')) {
+    return 'Bifocal Lenses';
+  }
+  if (lower.includes('distance & near') || lower.includes('distance and near') || lower.includes('separate') || lower.includes('both')) {
+    return 'Single Vision (Distance & Near)';
+  }
+  if (lower.includes('reading') || lower.includes('near only') || lower.includes('near (reading')) {
+    return 'Single Vision Near (Reading Only)';
+  }
+  if (lower.includes('distance only') || lower.includes('distance')) {
+    return 'Single Vision Distance Only';
+  }
+  return null;
+}
 
 export function validateHeaders(headers: string[]): { missing: string[]; matched: Record<string, string> } {
   const normalizedHeaders = headers.map((h) => h.trim().toLowerCase());
@@ -97,6 +126,20 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
           const fundingRaw = getRowValue(row, 'Funding', matched);
           const notesRaw = getRowValue(row, 'Notes', matched);
 
+          // Extended & Dispense column ingestion (from exported CSVs)
+          const reportRefRaw = getRowValue(row, 'Report Ref', matched) || getRowValue(row, 'Report Reference', matched);
+          const invoiceNoRaw = getRowValue(row, 'Invoice No', matched) || getRowValue(row, 'Invoice Number', matched);
+          const nextExamDateRaw = getRowValue(row, 'Next Exam Date', matched) || getRowValue(row, 'Next Examination', matched);
+          const dueDateRaw = getRowValue(row, 'Due Date', matched) || getRowValue(row, 'Payment Due Date', matched);
+          const lensTypeRaw = getRowValue(row, 'Lens Type', matched) || getRowValue(row, 'Lenses', matched);
+          const distFrameRaw = getRowValue(row, 'Distance Frame', matched) || getRowValue(row, 'Dist Frame', matched) || getRowValue(row, 'Distance Frame Model', matched);
+          const nearFrameRaw = getRowValue(row, 'Near Frame', matched) || getRowValue(row, 'Reading Frame', matched) || getRowValue(row, 'Near Frame Model', matched);
+          const bifocalFrameRaw = getRowValue(row, 'Bifocal Frame', matched) || getRowValue(row, 'Varifocal Frame', matched) || getRowValue(row, 'Multifocal Frame', matched);
+          const voucherTypeRaw = getRowValue(row, 'Voucher Type', matched) || getRowValue(row, 'Voucher', matched);
+          const marRaw = getRowValue(row, 'MAR Coating', matched) || getRowValue(row, 'MAR', matched) || getRowValue(row, 'Anti-Reflective', matched);
+          const reactionsRaw = getRowValue(row, 'Reactions', matched) || getRowValue(row, 'Photochromic', matched) || getRowValue(row, 'Transitions', matched);
+          const dementiaSummaryRaw = getRowValue(row, 'Dementia Summary', matched) || getRowValue(row, 'Eyecare Guide Summary', matched) || getRowValue(row, 'Vision Summary', matched);
+
           // Detailed Rx columns
           const rightRxRaw = getRowValue(row, 'Right Eye Rx', matched);
           const leftRxRaw = getRowValue(row, 'Left Eye Rx', matched);
@@ -105,12 +148,14 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
           const rightAxis = getRowValue(row, 'Right Axis', matched);
           const rightPrism = getRowValue(row, 'Right Prism', matched);
           const rightNearAdd = getRowValue(row, 'Right Near Add', matched);
+          const rightIntAdd = getRowValue(row, 'Right Int Add', matched);
           const leftSph = getRowValue(row, 'Left SPH', matched);
           const leftCyl = getRowValue(row, 'Left CYL', matched);
           const leftAxis = getRowValue(row, 'Left Axis', matched);
           const leftPrism = getRowValue(row, 'Left Prism', matched);
           const leftNearAdd = getRowValue(row, 'Left Near Add', matched);
-          const distPdRaw = getRowValue(row, 'Distance PD', matched);
+          const leftIntAdd = getRowValue(row, 'Left Int Add', matched);
+          const distPdRaw = getRowValue(row, 'Distance PD', matched) || getRowValue(row, 'PD', matched);
 
           if (!firstNameRaw && !surnameRaw) {
             warnings.push({
@@ -127,7 +172,7 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
           const careHome = toTitleCase(careHomeRaw) || careHomeName || 'Care Home';
           const postCode = postCodeRaw.toUpperCase() || careHomePostCode || '';
           const appointmentDate = normalizeDate(appDateRaw) || careHomeAppointmentDate || normalizeDate(new Date().toISOString());
-          const nextExamDate = calculateNextExamDate(appointmentDate, 1);
+          const nextExamDate = normalizeDate(nextExamDateRaw) || calculateNextExamDate(appointmentDate, 1);
           const dob = normalizeDate(dobRaw) || '01/01/1940';
           const optometrist = toTitleCase(optometristRaw) || careHomeOptometrist || 'Dr. Emma Taylor MCOptom';
           const funding = parseFunding(fundingRaw);
@@ -149,24 +194,26 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
           let rightInput: any = rightRxRaw || {};
           let leftInput: any = leftRxRaw || {};
 
-          if (rightSph || rightCyl || rightNearAdd) {
+          if (rightSph || rightCyl || rightAxis || rightPrism || rightNearAdd || rightIntAdd) {
             rightInput = {
               sph: formatDioptre(rightSph),
               cyl: formatDioptre(rightCyl),
               axis: formatAxis(rightAxis),
               prism: rightPrism || '-',
               nearAdd: formatDioptre(rightNearAdd),
+              intAdd: formatDioptre(rightIntAdd),
               pd: '32',
             };
           }
 
-          if (leftSph || leftCyl || leftNearAdd) {
+          if (leftSph || leftCyl || leftAxis || leftPrism || leftNearAdd || leftIntAdd) {
             leftInput = {
               sph: formatDioptre(leftSph),
               cyl: formatDioptre(leftCyl),
               axis: formatAxis(leftAxis),
               prism: leftPrism || '-',
               nearAdd: formatDioptre(leftNearAdd),
+              intAdd: formatDioptre(leftIntAdd),
               pd: '32',
             };
           }
@@ -176,20 +223,23 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
           const hasDistanceRx = spexRx.rightEye.sph !== 'PLANO' || spexRx.rightEye.cyl !== '-' || spexRx.leftEye.sph !== 'PLANO' || spexRx.leftEye.cyl !== '-';
           const hasNearRx = spexRx.rightEye.nearAdd !== '-' || spexRx.leftEye.nearAdd !== '-';
 
+          const explicitLensType = parseLensType(lensTypeRaw);
+          const lensType: LensTypeOption = explicitLensType || parsedNotes.lensType;
+
           let fallbackDist = '-';
           let fallbackNear = '-';
           let fallbackBifocal = '';
 
-          if (parsedNotes.lensType === 'Single Vision (Distance & Near)') {
+          if (lensType === 'Single Vision (Distance & Near)') {
             fallbackDist = 'Distance Spectacles';
             fallbackNear = 'Reading Spectacles';
-          } else if (parsedNotes.lensType === 'Single Vision Distance Only') {
+          } else if (lensType === 'Single Vision Distance Only') {
             fallbackDist = 'Distance Spectacles';
-          } else if (parsedNotes.lensType === 'Single Vision Near (Reading Only)') {
+          } else if (lensType === 'Single Vision Near (Reading Only)') {
             fallbackNear = 'Reading Spectacles';
-          } else if (parsedNotes.lensType === 'Bifocal Lenses' || parsedNotes.lensType === 'Varifocal / Progressive Lenses') {
-            fallbackBifocal = parsedNotes.lensType === 'Bifocal Lenses' ? 'Bifocal Spectacles' : 'Varifocal Spectacles';
-          } else if (parsedNotes.lensType !== 'Existing Spectacles Retained (No Change Needed)' && parsedNotes.lensType !== 'No Spectacles Required') {
+          } else if (lensType === 'Bifocal Lenses' || lensType === 'Varifocal / Progressive Lenses') {
+            fallbackBifocal = lensType === 'Bifocal Lenses' ? 'Bifocal Spectacles' : 'Varifocal Spectacles';
+          } else if (lensType !== 'Existing Spectacles Retained (No Change Needed)' && lensType !== 'No Spectacles Required') {
             if (hasDistanceRx && hasNearRx) {
               fallbackDist = 'Distance Spectacles';
               fallbackNear = 'Reading Spectacles';
@@ -200,15 +250,22 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
             }
           }
 
+          const distFrame = distFrameRaw !== '' ? distFrameRaw : (parsedNotes.distFrame || fallbackDist);
+          const nearFrame = nearFrameRaw !== '' ? nearFrameRaw : (parsedNotes.nearFrame || fallbackNear);
+          const bifocalFrame = bifocalFrameRaw !== '' ? bifocalFrameRaw : (parsedNotes.bifocalFrame || fallbackBifocal);
+          const voucherType = voucherTypeRaw || parsedNotes.voucherType || (funding === 'NHS' ? 'NHS Funded' : 'Private');
+          const hasMar = marRaw !== '' ? parseBoolean(marRaw) : parsedNotes.hasMar;
+          const hasReactions = reactionsRaw !== '' ? parseBoolean(reactionsRaw) : parsedNotes.hasReactions;
+
           const dispense: DispenseInfo = {
-            lensType: parsedNotes.lensType,
-            distFrame: parsedNotes.distFrame || fallbackDist,
-            nearFrame: parsedNotes.nearFrame || fallbackNear,
-            bifocalFrame: parsedNotes.bifocalFrame || fallbackBifocal,
-            voucherType: parsedNotes.voucherType || (funding === 'NHS' ? 'NHS Funded' : 'Private'),
+            lensType,
+            distFrame,
+            nearFrame,
+            bifocalFrame,
+            voucherType,
             caseCloth: true,
-            hasMar: parsedNotes.hasMar,
-            hasReactions: parsedNotes.hasReactions,
+            hasMar,
+            hasReactions,
           };
 
           const dementiaExplanation = generateDementiaCareExplanation(
@@ -217,10 +274,13 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
             dispense,
             notesRaw
           );
+          if (dementiaSummaryRaw) {
+            dementiaExplanation.summary = dementiaSummaryRaw;
+          }
 
-          const reportRef = generateReportRef(careHome, firstName, surname, dob, index + 1);
-          const invoiceNo = generateInvoiceNo(careHome, firstName, surname, dob, index + 1);
-          const dueDate = addDaysToDate(appointmentDate, PRICING_CONFIG.PAYMENT_TERMS_DAYS);
+          const reportRef = reportRefRaw || generateReportRef(careHome, firstName, surname, dob, index + 1);
+          const invoiceNo = invoiceNoRaw || generateInvoiceNo(careHome, firstName, surname, dob, index + 1);
+          const dueDate = normalizeDate(dueDateRaw) || addDaysToDate(appointmentDate, PRICING_CONFIG.PAYMENT_TERMS_DAYS);
 
           const lineItems = seen ? calculateOptometryLineItems(funding, dispense, spexRx.hasPrescription) : [];
           const totalAmount = calculateTotalAmount(lineItems);
@@ -329,3 +389,64 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
     });
   });
 }
+
+/**
+ * Generates cleaned and standardized CSV string from live PatientRow list, including all live edits.
+ */
+export function generateCleanedCsv(
+  patients: PatientRow[],
+  includeExtendedColumns: boolean = true
+): string {
+  const data = patients.map((p) => {
+    const baseRow: Record<string, string | number> = {
+      'ID': p.blinkId,
+      'Care Home': p.careHome,
+      'Post Code': p.postCode,
+      'Examination Date': p.appointmentDate,
+      'DOB': p.dob,
+      'Optometrist': p.optometrist,
+      'Resident First Name': p.residentFirstName,
+      'Resident Surname': p.residentSurname,
+      'Seen?': p.seen ? 'Yes' : 'No',
+      'Reason not seen': p.reasonNotSeen || '',
+      'Funding': p.funding,
+      'Right SPH': p.spexRx.rightEye.sph,
+      'Right CYL': p.spexRx.rightEye.cyl,
+      'Right Axis': p.spexRx.rightEye.axis,
+      'Right Prism': p.spexRx.rightEye.prism,
+      'Right Near Add': p.spexRx.rightEye.nearAdd,
+      'Right Int Add': p.spexRx.rightEye.intAdd || '-',
+      'Left SPH': p.spexRx.leftEye.sph,
+      'Left CYL': p.spexRx.leftEye.cyl,
+      'Left Axis': p.spexRx.leftEye.axis,
+      'Left Prism': p.spexRx.leftEye.prism,
+      'Left Near Add': p.spexRx.leftEye.nearAdd,
+      'Left Int Add': p.spexRx.leftEye.intAdd || '-',
+      'Distance PD': p.spexRx.binocularPd || p.spexRx.rightEye.pd || '64',
+      'Lens Type': p.dispense.lensType,
+      'Distance Frame': p.dispense.distFrame || '',
+      'Near Frame': p.dispense.nearFrame || '',
+      'Bifocal Frame': p.dispense.bifocalFrame || '',
+      'Voucher Type': p.dispense.voucherType || (p.funding === 'NHS' ? 'NHS Funded' : 'Private'),
+      'MAR Coating': p.dispense.hasMar ? 'Yes' : 'No',
+      'Reactions': p.dispense.hasReactions ? 'Yes' : 'No',
+      'Notes': p.notes || '',
+    };
+
+    if (includeExtendedColumns) {
+      baseRow['Report Ref'] = p.reportRef;
+      baseRow['Invoice No'] = p.invoiceNo;
+      baseRow['Total Amount (GBP)'] = p.seen ? `£${p.totalAmount.toFixed(2)}` : '£0.00';
+      baseRow['Due Date'] = p.dueDate;
+      baseRow['Next Exam Date'] = p.nextExamDate;
+      if (p.dementiaExplanation?.summary) {
+        baseRow['Dementia Summary'] = p.dementiaExplanation.summary;
+      }
+    }
+
+    return baseRow;
+  });
+
+  return Papa.unparse(data);
+}
+

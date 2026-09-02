@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CareHomeSummary, PatientRow, ValidationError } from './types/optometry';
-import { parseOptometryCsv } from './utils/csvParser';
+import { parseOptometryCsv, generateCleanedCsv } from './utils/csvParser';
 import { SAMPLE_OPTOMETRY_CSV } from './utils/sampleData';
-import { exportBatchZipArchive } from './utils/pdfGenerator';
+import { exportBatchZipArchive, sanitizeFileName, triggerBlobDownload } from './utils/pdfGenerator';
 import { INACTIVITY_TIMEOUT_MS } from './utils/security';
 import { runSelfVerificationTests } from './utils/testVerification';
 
@@ -117,6 +117,16 @@ export const App: React.FC = () => {
     window.print();
   };
 
+  const handleExportCleanedCsv = () => {
+    if (!summary || patients.length === 0) return;
+    const safeCareHome = sanitizeFileName(summary.careHome || 'CareHome');
+    const dateStr = summary.appointmentDate ? summary.appointmentDate.replace(/\//g, '-') : 'Date';
+    const csvContent = generateCleanedCsv(patients, true);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const filename = '00_' + safeCareHome + '_Cleaned_Roster_' + dateStr + '.csv';
+    triggerBlobDownload(blob, filename);
+  };
+
   const handleExportBatchZip = async () => {
     if (!summary || patients.length === 0) return;
 
@@ -154,6 +164,7 @@ export const App: React.FC = () => {
         onFileUpload={handleFileUpload}
         onLoadSampleData={handleLoadSampleData}
         onPurgeData={handlePurgeData}
+        onExportCleanedCsv={handleExportCleanedCsv}
         onLockSession={() => {
           setPinModalMode('unlock');
         }}
@@ -175,6 +186,7 @@ export const App: React.FC = () => {
             onUpdatePatient={handleUpdatePatient}
             onPrintSingle={handlePrintSingle}
             onPrintBatch={handlePrintSingle}
+            onExportCleanedCsv={handleExportCleanedCsv}
             onExportBatchZip={handleExportBatchZip}
           />
         )}

@@ -7,6 +7,7 @@ import { CareHomeSummary, PatientRow } from '../types/optometry';
 import { CareHomeReport } from '../components/print/CareHomeReport';
 import { OptometryReport } from '../components/print/OptometryReport';
 import { OptometryInvoice } from '../components/print/OptometryInvoice';
+import { generateCleanedCsv } from './csvParser';
 
 export function sanitizeFileName(name: string): string {
   return name
@@ -158,6 +159,11 @@ export async function exportBatchZipArchive(
   const summaryBlob = await renderReactNodeToPdfBlob(<CareHomeReport summary={summary} />);
   const summaryFileName = '00_' + safeCareHome + '_Summary_Report_' + dateStr + '.pdf';
   folder.file(summaryFileName, summaryBlob);
+
+  // Bundle Portable Cleaned CSV into ZIP root
+  const cleanedCsvText = generateCleanedCsv(patients, true);
+  const cleanedCsvFileName = '00_' + safeCareHome + '_Cleaned_Roster_' + dateStr + '.csv';
+  folder.file(cleanedCsvFileName, cleanedCsvText);
 
   // 2. Loop through seen patients
   for (let i = 0; i < seenPatients.length; i++) {
