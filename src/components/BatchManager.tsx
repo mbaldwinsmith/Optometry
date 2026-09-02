@@ -88,25 +88,39 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
   const handlePatientSelect = (p: PatientRow) => {
     setSelectedPatientId(p.id);
     if (activeTab === 'care-home') {
-      setActiveTab(p.seen ? 'patient-report' : 'care-home');
+      if (p.seen) {
+        setActiveTab('patient-report');
+      }
     }
     setMobilePane('preview');
   };
 
+  const isIndividualDocDisabled = !selectedPatient?.seen && activeTab !== 'care-home';
+
   const handleDownloadCurrentDoc = async () => {
     if (isDownloadingCurrent) return;
+    if (isIndividualDocDisabled) return;
     setIsDownloadingCurrent(true);
     try {
       if (activeTab === 'care-home') {
         await exportCareHomeReportPdf(summary);
-      } else if (activeTab === 'patient-report' && selectedPatient) {
+      } else if (activeTab === 'patient-report' && selectedPatient && selectedPatient.seen) {
         await exportPatientReportPdf(selectedPatient);
-      } else if (activeTab === 'patient-invoice' && selectedPatient) {
+      } else if (activeTab === 'patient-invoice' && selectedPatient && selectedPatient.seen) {
         await exportPatientInvoicePdf(selectedPatient);
       }
     } finally {
       setIsDownloadingCurrent(false);
     }
+  };
+
+  const handleSinglePrint = () => {
+    if (isIndividualDocDisabled) {
+      setActiveTab('care-home');
+      setTimeout(() => onPrintSingle(), 100);
+      return;
+    }
+    onPrintSingle();
   };
 
   return (
@@ -259,9 +273,13 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
                         {p.residentFullName}
                       </span>
                       <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
-                        p.funding === 'NHS' ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-800'
+                        !p.seen
+                          ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                          : p.funding === 'NHS'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-purple-100 text-purple-800'
                       }`}>
-                        {p.funding}
+                        {!p.seen ? 'Not Seen' : p.funding}
                       </span>
                     </div>
                     <div className="text-[10px] text-slate-500 mt-0.5 flex items-center gap-2">
@@ -346,20 +364,28 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
 
               <button
                 onClick={handleDownloadCurrentDoc}
-                disabled={isDownloadingCurrent}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm flex items-center gap-1.5"
-                title="Download this document as high-resolution A4 PDF"
+                disabled={isDownloadingCurrent || isIndividualDocDisabled}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm flex items-center gap-1.5 border ${
+                  isIndividualDocDisabled
+                    ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
+                }`}
+                title={
+                  isIndividualDocDisabled
+                    ? 'Individual documents are only generated for examined residents'
+                    : 'Download this document as high-resolution A4 PDF'
+                }
               >
                 {isDownloadingCurrent ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-blue" />
                 ) : (
-                  <FileDown className="w-3.5 h-3.5 text-brand-blue" />
+                  <FileDown className={`w-3.5 h-3.5 ${isIndividualDocDisabled ? 'text-slate-400' : 'text-brand-blue'}`} />
                 )}
                 <span>PDF</span>
               </button>
 
               <button
-                onClick={onPrintSingle}
+                onClick={handleSinglePrint}
                 className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm flex items-center gap-1.5"
                 title="Print current document"
               >
@@ -395,10 +421,58 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
           >
             {activeTab === 'care-home' && <CareHomeReport summary={summary} />}
             {activeTab === 'patient-report' && selectedPatient && (
-              <OptometryReport patient={selectedPatient} />
+              selectedPatient.seen ? (
+                <OptometryReport patient={selectedPatient} />
+              ) : (
+                <div className="a4-page p-8 md:p-12 flex flex-col items-center justify-center text-center bg-white rounded-lg shadow-sm border border-slate-200 text-slate-600 max-w-2xl my-auto">
+                  <div className="w-14 h-14 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-2xl mb-4">
+                    📋
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 mb-1.5">
+                    Individual Report Not Generated
+                  </h3>
+                  <p className="text-xs text-slate-600 max-w-md leading-relaxed mb-2">
+                    <strong className="text-slate-800">{selectedPatient.residentFullName}</strong> was not examined during this domiciliary visit.
+                  </p>
+                  <div className="bg-amber-50/70 border border-amber-200 rounded-md px-3.5 py-2 text-xs text-amber-900 mb-5 max-w-md font-medium">
+                    Status: {selectedPatient.reasonNotSeen || 'Resident did not attend on visit day (DNA)'}
+                  </div>
+                  <p className="text-[11px] text-slate-400 max-w-sm mb-5">
+                    Individual eyecare assessment summaries and prescriptions are strictly produced for examined residents. Unseen residents are logged in the Care Home Report.
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('care-home')}
+                    className="inline-flex items-center gap-2 bg-brand-navy hover:bg-brand-blue text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm"
+                  >
+                    <Building className="w-3.5 h-3.5" />
+                    <span>View Care Home Summary Report</span>
+                  </button>
+                </div>
+              )
             )}
             {activeTab === 'patient-invoice' && selectedPatient && (
-              <OptometryInvoice patient={selectedPatient} />
+              selectedPatient.seen ? (
+                <OptometryInvoice patient={selectedPatient} />
+              ) : (
+                <div className="a4-page p-8 md:p-12 flex flex-col items-center justify-center text-center bg-white rounded-lg shadow-sm border border-slate-200 text-slate-600 max-w-2xl my-auto">
+                  <div className="w-14 h-14 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-2xl mb-4">
+                    🧾
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 mb-1.5">
+                    No Invoice Generated
+                  </h3>
+                  <p className="text-xs text-slate-600 max-w-md leading-relaxed mb-4">
+                    No invoice or billing statement is generated for <strong className="text-slate-800">{selectedPatient.residentFullName}</strong> because no examination or dispense took place.
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('care-home')}
+                    className="inline-flex items-center gap-2 bg-brand-navy hover:bg-brand-blue text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm"
+                  >
+                    <Building className="w-3.5 h-3.5" />
+                    <span>View Care Home Summary Report</span>
+                  </button>
+                </div>
+              )
             )}
           </div>
         </div>

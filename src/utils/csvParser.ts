@@ -138,7 +138,11 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
           if (!careHomeOptometrist && optometrist) careHomeOptometrist = optometrist;
 
           const seen = parseBoolean(seenRaw || 'Yes');
-          const reasonNotSeen = reasonNotSeenRaw || (seen ? '' : 'Resident unwell / Resting in room');
+          const rawReason = reasonNotSeenRaw || (seen ? '' : 'Resident did not attend (DNA) - Rescheduled for next routine visit');
+          const reasonNotSeen = rawReason
+            .replace(/(?:-\s*)?Missing\s*(?:patient\s*|declaration\s*)?signature/gi, '')
+            .replace(/(?:-\s*)?Missing\s*signature/gi, '')
+            .trim() || (seen ? '' : 'Resident did not attend (DNA) - Rescheduled for next routine visit');
 
           const parsedNotes = parseClinicalNotes(notesRaw);
 
@@ -169,11 +173,38 @@ export function parseOptometryCsv(csvString: string): Promise<ParseResult> {
 
           const spexRx = buildSpexRx(rightInput, leftInput, distPdRaw || parsedNotes.pd);
 
+          const hasDistanceRx = spexRx.rightEye.sph !== 'PLANO' || spexRx.rightEye.cyl !== '-' || spexRx.leftEye.sph !== 'PLANO' || spexRx.leftEye.cyl !== '-';
+          const hasNearRx = spexRx.rightEye.nearAdd !== '-' || spexRx.leftEye.nearAdd !== '-';
+
+          let fallbackDist = '-';
+          let fallbackNear = '-';
+          let fallbackBifocal = '';
+
+          if (parsedNotes.lensType === 'Single Vision (Distance & Near)') {
+            fallbackDist = 'Distance Spectacles';
+            fallbackNear = 'Reading Spectacles';
+          } else if (parsedNotes.lensType === 'Single Vision Distance Only') {
+            fallbackDist = 'Distance Spectacles';
+          } else if (parsedNotes.lensType === 'Single Vision Near (Reading Only)') {
+            fallbackNear = 'Reading Spectacles';
+          } else if (parsedNotes.lensType === 'Bifocal Lenses' || parsedNotes.lensType === 'Varifocal / Progressive Lenses') {
+            fallbackBifocal = parsedNotes.lensType === 'Bifocal Lenses' ? 'Bifocal Spectacles' : 'Varifocal Spectacles';
+          } else if (parsedNotes.lensType !== 'Existing Spectacles Retained (No Change Needed)' && parsedNotes.lensType !== 'No Spectacles Required') {
+            if (hasDistanceRx && hasNearRx) {
+              fallbackDist = 'Distance Spectacles';
+              fallbackNear = 'Reading Spectacles';
+            } else if (hasNearRx) {
+              fallbackNear = 'Reading Spectacles';
+            } else if (hasDistanceRx) {
+              fallbackDist = 'Distance Spectacles';
+            }
+          }
+
           const dispense: DispenseInfo = {
             lensType: parsedNotes.lensType,
-            distFrame: parsedNotes.distFrame || (parsedNotes.lensType === 'Single Vision Distance Only' ? 'Distance Spectacles' : '-'),
-            nearFrame: parsedNotes.nearFrame || (parsedNotes.lensType === 'Single Vision Near (Reading Only)' || spexRx.rightEye.nearAdd !== '-' ? 'Reading Spectacles' : '-'),
-            bifocalFrame: parsedNotes.bifocalFrame || (parsedNotes.lensType === 'Bifocal Lenses' ? 'Bifocal Spectacles' : ''),
+            distFrame: parsedNotes.distFrame || fallbackDist,
+            nearFrame: parsedNotes.nearFrame || fallbackNear,
+            bifocalFrame: parsedNotes.bifocalFrame || fallbackBifocal,
             voucherType: parsedNotes.voucherType || (funding === 'NHS' ? 'NHS Funded' : 'Private'),
             caseCloth: true,
             hasMar: parsedNotes.hasMar,

@@ -137,13 +137,20 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-amber-100">
-                  {summary.unseenPatients.map((p) => (
-                    <tr key={p.id} className="bg-amber-50/30">
-                      <td className="py-1 px-2 font-semibold text-slate-800">{p.residentFullName}</td>
-                      <td className="py-1 px-2 text-slate-600">{p.dob}</td>
-                      <td className="py-1 px-2 text-amber-950">{p.reasonNotSeen || 'Rescheduled for next visit'}</td>
-                    </tr>
-                  ))}
+                  {summary.unseenPatients.map((p) => {
+                    const cleanReason = (p.reasonNotSeen || 'Resident did not attend (DNA) - Rescheduled for next routine visit')
+                      .replace(/(?:-\s*)?Missing\s*(?:patient\s*|declaration\s*)?signature/gi, '')
+                      .replace(/(?:-\s*)?Missing\s*signature/gi, '')
+                      .trim() || 'Resident did not attend (DNA) - Rescheduled for next routine visit';
+
+                    return (
+                      <tr key={p.id} className="bg-amber-50/30">
+                        <td className="py-1 px-2 font-semibold text-slate-800">{p.residentFullName}</td>
+                        <td className="py-1 px-2 text-slate-600">{p.dob}</td>
+                        <td className="py-1 px-2 text-amber-950">{cleanReason}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             ) : (

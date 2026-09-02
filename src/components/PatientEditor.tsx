@@ -474,27 +474,40 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
 
       {/* PDF Export Shortcuts */}
       <div className="pt-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <span className="text-[10px] sm:text-[11px] text-slate-500 italic">
-          Export individual files named with resident name &amp; reference:
-        </span>
-        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
-          <button
-            type="button"
-            onClick={() => exportPatientReportPdf(patient)}
-            className="flex items-center justify-center gap-1.5 bg-brand-soft hover:bg-brand-soft-hover text-brand-navy border border-brand-soft-dark px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm"
-          >
-            <FileText className="w-3.5 h-3.5 text-brand-blue" />
-            <span>Download Report</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => exportPatientInvoicePdf(patient)}
-            className="flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm"
-          >
-            <Receipt className="w-3.5 h-3.5 text-slate-600" />
-            <span>Download Invoice</span>
-          </button>
-        </div>
+        {patient.seen ? (
+          <>
+            <span className="text-[10px] sm:text-[11px] text-slate-500 italic">
+              Export individual files named with resident name &amp; reference:
+            </span>
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
+              <button
+                type="button"
+                onClick={() => exportPatientReportPdf(patient)}
+                className="flex items-center justify-center gap-1.5 bg-brand-soft hover:bg-brand-soft-hover text-brand-navy border border-brand-soft-dark px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm"
+              >
+                <FileText className="w-3.5 h-3.5 text-brand-blue" />
+                <span>Download Report</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => exportPatientInvoicePdf(patient)}
+                className="flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm"
+              >
+                <Receipt className="w-3.5 h-3.5 text-slate-600" />
+                <span>Download Invoice</span>
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="w-full bg-amber-50/70 border border-amber-200 rounded-lg p-2.5 text-xs text-amber-900 flex items-center justify-between">
+            <span className="font-medium">
+              ⚠️ Resident marked as Not Seen (DNA) — Individual report and invoice are excluded.
+            </span>
+            <span className="text-[10px] text-amber-700 italic">
+              Recorded in Care Home Summary
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
