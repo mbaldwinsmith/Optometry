@@ -131,9 +131,8 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
               <table className="w-full text-left text-[10px] border border-amber-200 rounded overflow-hidden">
                 <thead className="bg-amber-50 text-amber-900 font-semibold border-b border-amber-200">
                   <tr>
-                    <th className="py-1 px-2">Resident</th>
-                    <th className="py-1 px-2">DOB</th>
-                    <th className="py-1 px-2">Reason Not Seen / Action Plan</th>
+                    <th className="py-1 px-2.5 w-1/3">Resident</th>
+                    <th className="py-1 px-2.5">Reason Not Seen / Action Plan</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-amber-100">
@@ -145,9 +144,8 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
 
                     return (
                       <tr key={p.id} className="bg-amber-50/30">
-                        <td className="py-1 px-2 font-semibold text-slate-800">{p.residentFullName}</td>
-                        <td className="py-1 px-2 text-slate-600">{p.dob}</td>
-                        <td className="py-1 px-2 text-amber-950">{cleanReason}</td>
+                        <td className="py-1 px-2.5 font-semibold text-slate-800">{p.residentFullName}</td>
+                        <td className="py-1 px-2.5 text-amber-950">{cleanReason}</td>
                       </tr>
                     );
                   })}
