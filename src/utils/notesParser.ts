@@ -3,10 +3,14 @@ import { toTitleCase } from './cleaners';
 
 function cleanExtractedFrame(raw: string): string {
   if (!raw) return '';
-  return raw
+  const cleaned = raw
     .replace(/(?:Near|Reading|Read|Dist|Distance|Bifocal|Varifocal|Multifocal|PD|Distance PDs?|SOS|GOS).*$/i, '')
     .replace(/[;\.\,\-]+$/, '')
     .trim();
+  if (/^(?:none|nil|n\/a|no|no\s*specs|no\s*spectacles|-)$/i.test(cleaned)) {
+    return '';
+  }
+  return cleaned;
 }
 
 export function parseClinicalNotes(notesText?: string): {
@@ -26,7 +30,7 @@ export function parseClinicalNotes(notesText?: string): {
       distFrame: '',
       nearFrame: '',
       bifocalFrame: '',
-      lensType: 'Single Vision (Distance & Near)',
+      lensType: 'No Spectacles Required',
       voucherType: 'NHS Funded',
       pd: '64',
       sosAdviceGiven: true,
@@ -55,21 +59,23 @@ export function parseClinicalNotes(notesText?: string): {
   let nearFrame = nearMatch ? cleanExtractedFrame(nearMatch[1]) : '';
 
   // 5. Lens Type detection
-  let lensType: LensTypeOption = 'Single Vision (Distance & Near)';
-  if (/no\s*spectacles\s*required|no\s*glasses\s*needed/i.test(text)) {
+  let lensType: LensTypeOption = 'No Spectacles Required';
+  if (/no\s*spectacles\s*(?:required|needed|ordered)|no\s*glasses\s*(?:needed|required|ordered)|no\s*specs\s*(?:needed|required|ordered)|none\s*ordered|none\s*required|no\s*spectacles|no\s*glasses|declined\s*frame/i.test(text)) {
     lensType = 'No Spectacles Required';
   } else if (/existing\s*(?:kept|retained|in\s*good\s*order)|no\s*(?:prescription\s*)?change/i.test(text) && !distFrame && !nearFrame && !bifocalFrame) {
     lensType = 'Existing Spectacles Retained (No Change Needed)';
-  } else if (/varifocal|progressive/i.test(text)) {
+  } else if (/varifocal|progressive/i.test(text) || bifocalFrame.toLowerCase().includes('varifocal')) {
     lensType = 'Varifocal / Progressive Lenses';
-  } else if (/bifocal/i.test(text)) {
+  } else if (bifocalFrame || /bifocal/i.test(text)) {
     lensType = 'Bifocal Lenses';
+  } else if (distFrame && nearFrame) {
+    lensType = 'Single Vision (Distance & Near)';
   } else if (distFrame && !nearFrame) {
     lensType = 'Single Vision Distance Only';
   } else if (nearFrame && !distFrame) {
     lensType = 'Single Vision Near (Reading Only)';
-  } else if (distFrame && nearFrame) {
-    lensType = 'Single Vision (Distance & Near)';
+  } else {
+    lensType = 'No Spectacles Required';
   }
 
   // 6. Voucher Type / Funding

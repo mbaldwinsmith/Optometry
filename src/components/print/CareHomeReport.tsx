@@ -297,6 +297,12 @@ export const CareHomeReport: React.FC<CareHomeReportProps> = ({ summary }) => {
                             outcomeText = 'Existing spectacles retained (No change needed)';
                           } else if (p.dispense.lensType === 'No Spectacles Required') {
                             outcomeText = 'No spectacles required';
+                          } else if (
+                            (!p.dispense.distFrame || p.dispense.distFrame === '-') &&
+                            (!p.dispense.nearFrame || p.dispense.nearFrame === '-') &&
+                            (!p.dispense.bifocalFrame || p.dispense.bifocalFrame === '-')
+                          ) {
+                            outcomeText = 'No spectacles required';
                           }
 
                           return (

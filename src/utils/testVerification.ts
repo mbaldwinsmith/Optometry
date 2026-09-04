@@ -137,6 +137,30 @@ export async function runSelfVerificationTests(): Promise<{ passed: boolean; res
     results.push('✗ Test 8 Failed: User-friendly filename formatting issue (' + cleanHome + ', ' + reportFile + ')');
   }
 
+  // Test 9: No Spectacles Ordered / Required detection
+  const testCsvNoSpecs = `ID,Care Home,Post Code,Examination Date,DOB,Optometrist,Resident First Name,Resident Surname,Seen?,Reason not seen,Funding,Right SPH,Right CYL,Right Axis,Right Near Add,Left SPH,Left CYL,Left Axis,Left Near Add,Distance PD,Notes
+BLK-5433,St Marks,CO15 3PW,02/09/2026,12/03/1934,Adnan Hussain,Sheila,Grey,Yes,,NHS,+5.00,-6.25,105,+3.00,+5.00,-8.00,105,+3.00,64,No spectacles ordered. SOS advice given. Distance PD 64.
+BLK-5435,St Marks,CO15 3PW,02/09/2026,24/09/1956,Adnan Hussain,Ricky,Mellowship,Yes,,NHS,-1.00,-5.00,10,+3.00,-2.00,-7.00,20,+3.00,64,No spectacles ordered. SOS advice given. Distance PD 64.`;
+  const noSpecsRes = await parseOptometryCsv(testCsvNoSpecs);
+  const sheila = noSpecsRes.patients[0];
+  const ricky = noSpecsRes.patients[1];
+
+  if (
+    sheila &&
+    ricky &&
+    sheila.dispense.lensType === 'No Spectacles Required' &&
+    sheila.dispense.distFrame === '-' &&
+    sheila.dispense.nearFrame === '-' &&
+    ricky.dispense.lensType === 'No Spectacles Required' &&
+    ricky.dispense.distFrame === '-' &&
+    ricky.dispense.nearFrame === '-'
+  ) {
+    results.push('✓ Test 9 Passed: "No spectacles ordered" notes correctly parsed as "No Spectacles Required" with no frames dispensed');
+  } else {
+    passed = false;
+    results.push('✗ Test 9 Failed: Sheila lensType=' + sheila?.dispense.lensType + ', Ricky lensType=' + ricky?.dispense.lensType);
+  }
+
   console.log('[Verification Suite]', passed ? 'ALL TESTS PASSED' : 'TESTS FAILED', results);
   return { passed, results };
 }
