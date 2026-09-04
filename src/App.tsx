@@ -119,11 +119,10 @@ export const App: React.FC = () => {
 
   const handleExportCleanedCsv = () => {
     if (!summary || patients.length === 0) return;
-    const safeCareHome = sanitizeFileName(summary.careHome || 'CareHome');
-    const dateStr = summary.appointmentDate ? summary.appointmentDate.replace(/\//g, '-') : 'Date';
+    const safeCareHome = sanitizeFileName(summary.careHome?.trim() || 'Care Home');
     const csvContent = generateCleanedCsv(patients, true);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const filename = '00_' + safeCareHome + '_Cleaned_Roster_' + dateStr + '.csv';
+    const filename = sanitizeFileName(`${safeCareHome} - Cleaned Roster.csv`);
     triggerBlobDownload(blob, filename);
   };
 

@@ -12,8 +12,8 @@ import { generateCleanedCsv } from './csvParser';
 export function sanitizeFileName(name: string): string {
   return name
     .replace(/[\\/:*?"<>|]/g, '')
-    .trim()
-    .replace(/\s+/g, '_');
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export function triggerBlobDownload(blob: Blob, filename: string): void {
@@ -144,26 +144,28 @@ export async function renderReactNodeToPdfBlob(node: React.ReactElement): Promis
 }
 
 export async function exportPatientReportPdf(patient: PatientRow): Promise<void> {
-  const filename = sanitizeFileName(
-    patient.reportRef + '_' + patient.residentSurname + '_' + patient.residentFirstName + '_Eyecare_Report.pdf'
-  );
+  const patientName =
+    [patient.residentFirstName, patient.residentSurname].filter(Boolean).join(' ') ||
+    patient.residentFullName ||
+    'Resident';
+  const filename = sanitizeFileName(`${patientName} - Eye Report.pdf`);
   const blob = await renderReactNodeToPdfBlob(<OptometryReport patient={patient} />);
   triggerBlobDownload(blob, filename);
 }
 
 export async function exportPatientInvoicePdf(patient: PatientRow): Promise<void> {
-  const filename = sanitizeFileName(
-    patient.invoiceNo + '_' + patient.residentSurname + '_' + patient.residentFirstName + '_Invoice.pdf'
-  );
+  const patientName =
+    [patient.residentFirstName, patient.residentSurname].filter(Boolean).join(' ') ||
+    patient.residentFullName ||
+    'Resident';
+  const filename = sanitizeFileName(`${patientName} - Invoice.pdf`);
   const blob = await renderReactNodeToPdfBlob(<OptometryInvoice patient={patient} />);
   triggerBlobDownload(blob, filename);
 }
 
 export async function exportCareHomeReportPdf(summary: CareHomeSummary): Promise<void> {
-  const dateStr = summary.appointmentDate ? summary.appointmentDate.replace(/\//g, '-') : 'Visit';
-  const filename = sanitizeFileName(
-    summary.careHome + '_Care_Home_Optometry_Report_' + dateStr + '.pdf'
-  );
+  const careHome = sanitizeFileName(summary.careHome?.trim() || 'Care Home');
+  const filename = sanitizeFileName(`${careHome} - Care Home Summary Report.pdf`);
   const blob = await renderReactNodeToPdfBlob(<CareHomeReport summary={summary} />);
   triggerBlobDownload(blob, filename);
 }
@@ -189,9 +191,8 @@ export async function exportBatchZipArchive(
 
   const zip = new JSZip();
 
-  const safeCareHome = sanitizeFileName(summary.careHome || 'CareHome');
-  const dateStr = summary.appointmentDate ? summary.appointmentDate.replace(/\//g, '-') : 'Date';
-  const rootFolderName = safeCareHome + '_Optometry_' + dateStr;
+  const safeCareHome = sanitizeFileName(summary.careHome?.trim() || 'Care Home');
+  const rootFolderName = safeCareHome;
   const folder = zip.folder(rootFolderName) || zip;
 
   const reportsFolder = folder.folder('Reports');
@@ -205,22 +206,26 @@ export async function exportBatchZipArchive(
       total: totalDocs,
       percent: Math.round((currentDoc / totalDocs) * 100),
       status: 'Generating Care Home Summary...',
-      itemTitle: summary.careHome + ' Summary',
+      itemTitle: safeCareHome + ' Summary',
     });
   }
 
   const summaryBlob = await renderReactNodeToPdfBlob(<CareHomeReport summary={summary} />);
-  const summaryFileName = '00_' + safeCareHome + '_Summary_Report_' + dateStr + '.pdf';
+  const summaryFileName = sanitizeFileName(`00 - ${safeCareHome} - Summary Report.pdf`);
   folder.file(summaryFileName, summaryBlob);
 
   // Bundle Portable Cleaned CSV into ZIP root
   const cleanedCsvText = generateCleanedCsv(patients, true);
-  const cleanedCsvFileName = '00_' + safeCareHome + '_Cleaned_Roster_' + dateStr + '.csv';
+  const cleanedCsvFileName = sanitizeFileName(`00 - ${safeCareHome} - Cleaned Roster.csv`);
   folder.file(cleanedCsvFileName, cleanedCsvText);
 
   // 2. Loop through seen patients
   for (let i = 0; i < seenPatients.length; i++) {
     const patient = seenPatients[i];
+    const patientName =
+      [patient.residentFirstName, patient.residentSurname].filter(Boolean).join(' ') ||
+      patient.residentFullName ||
+      `Resident ${i + 1}`;
 
     // Patient Report
     currentDoc++;
@@ -229,19 +234,17 @@ export async function exportBatchZipArchive(
         current: currentDoc,
         total: totalDocs,
         percent: Math.round((currentDoc / totalDocs) * 100),
-        status: 'Generating Eyecare Report ' + (i + 1) + ' of ' + seenPatients.length + '...',
-        itemTitle: patient.residentFullName + ' (Report)',
+        status: 'Generating Eye Report ' + (i + 1) + ' of ' + seenPatients.length + '...',
+        itemTitle: patientName + ' (Eye Report)',
       });
     }
 
     const reportBlob = await renderReactNodeToPdfBlob(<OptometryReport patient={patient} />);
-    const reportFileName = sanitizeFileName(
-      patient.reportRef + '_' + patient.residentSurname + '_' + patient.residentFirstName + '_Report.pdf'
-    );
+    const reportFileName = sanitizeFileName(`${patientName} - Eye Report.pdf`);
     if (reportsFolder) {
       reportsFolder.file(reportFileName, reportBlob);
     } else {
-      folder.file('Reports_' + reportFileName, reportBlob);
+      folder.file('Reports - ' + reportFileName, reportBlob);
     }
 
     // Patient Invoice
@@ -252,18 +255,16 @@ export async function exportBatchZipArchive(
         total: totalDocs,
         percent: Math.round((currentDoc / totalDocs) * 100),
         status: 'Generating Invoice ' + (i + 1) + ' of ' + seenPatients.length + '...',
-        itemTitle: patient.residentFullName + ' (Invoice)',
+        itemTitle: patientName + ' (Invoice)',
       });
     }
 
     const invoiceBlob = await renderReactNodeToPdfBlob(<OptometryInvoice patient={patient} />);
-    const invoiceFileName = sanitizeFileName(
-      patient.invoiceNo + '_' + patient.residentSurname + '_' + patient.residentFirstName + '_Invoice.pdf'
-    );
+    const invoiceFileName = sanitizeFileName(`${patientName} - Invoice.pdf`);
     if (invoicesFolder) {
       invoicesFolder.file(invoiceFileName, invoiceBlob);
     } else {
-      folder.file('Invoices_' + invoiceFileName, invoiceBlob);
+      folder.file('Invoices - ' + invoiceFileName, invoiceBlob);
     }
   }
 

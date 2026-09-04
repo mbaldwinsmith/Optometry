@@ -3,6 +3,7 @@ import { SAMPLE_OPTOMETRY_CSV } from './sampleData';
 import { calculateNextExamDate } from './cleaners';
 import { formatDioptre } from './rxParser';
 import { generateReportRef } from './hash';
+import { sanitizeFileName } from './pdfGenerator';
 
 export async function runSelfVerificationTests(): Promise<{ passed: boolean; results: string[] }> {
   const results: string[] = [];
@@ -115,6 +116,25 @@ export async function runSelfVerificationTests(): Promise<{ passed: boolean; res
   } else {
     passed = false;
     results.push('✗ Test 7 Failed: Re-imported patient did not match live edits');
+  }
+
+  // Test 8: User-friendly export filenames without underscores
+  const rawHome = ' Nightingale: House / Home* ';
+  const cleanHome = sanitizeFileName(rawHome);
+  const reportFile = sanitizeFileName('Wendy Haynes - Eye Report.pdf');
+  const invoiceFile = sanitizeFileName('Wendy Haynes - Invoice.pdf');
+  const zipFile = `${cleanHome}.zip`;
+
+  if (
+    cleanHome === 'Nightingale House Home' &&
+    reportFile === 'Wendy Haynes - Eye Report.pdf' &&
+    invoiceFile === 'Wendy Haynes - Invoice.pdf' &&
+    zipFile === 'Nightingale House Home.zip'
+  ) {
+    results.push('✓ Test 8 Passed: User-friendly filenames verified without underscores (e.g., "' + reportFile + '", "' + zipFile + '")');
+  } else {
+    passed = false;
+    results.push('✗ Test 8 Failed: User-friendly filename formatting issue (' + cleanHome + ', ' + reportFile + ')');
   }
 
   console.log('[Verification Suite]', passed ? 'ALL TESTS PASSED' : 'TESTS FAILED', results);

@@ -42,13 +42,14 @@ A clinical-grade, offline-first Progressive Web Application (PWA) designed for *
 * High-resolution A4 PDFs generated directly in the browser via `jspdf` and `html2canvas`.
 * Bundles all individually named files into an organized ZIP archive:
   ```text
-  📁 Fairhaven_Care_Home_Optometry_2026-08-24.zip
-  ├── 00_Fairhaven_Care_Home_Summary_Report_2026-08-24.pdf
+  📁 Fairhaven Care Home.zip
+  ├── 00 - Fairhaven Care Home - Summary Report.pdf
+  ├── 00 - Fairhaven Care Home - Cleaned Roster.csv
   ├── 📁 Reports/
-  │   ├── FCH-MD1403-OPT1_Dudman_Melanie_Report.pdf
+  │   ├── Melanie Dudman - Eye Report.pdf
   │   └── ...
   └── 📁 Invoices/
-      ├── FCH-MD1403-INV1_Dudman_Melanie_Invoice.pdf
+      ├── Melanie Dudman - Invoice.pdf
       └── ...
   ```
 

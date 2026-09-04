@@ -399,24 +399,25 @@ Each eye (Right: `OD / RE`, Left: `OS / LE`) must capture:
 
 - [ ] **Task 7.1: Build Client-Side PDF Generator (`src/utils/pdfGenerator.tsx`)**
   - `convertElementToPdfBlob(element)`: Uses `html2canvas` at `scale: 2` (high-DPI crisp clinical text) and `jsPDF` (`format: 'a4'`, `unit: 'mm'`) to render multi-page documents offscreen.
-  - `exportPatientReportPdf(patient)`: Individual Eyecare Summary download with sanitized filename (`{Ref}_{Surname}_{FirstName}_Report.pdf`).
-  - `exportPatientInvoicePdf(patient)`: Individual Invoice download (`{InvoiceNo}_{Surname}_{FirstName}_Invoice.pdf`).
-  - `exportCareHomeReportPdf(summary)`: Executive Summary download (`{CareHome}_Care_Home_Summary_Report_{Date}.pdf`).
+  - `exportPatientReportPdf(patient)`: Individual Eyecare Summary download with sanitized filename (`{FirstName} {Surname} - Eye Report.pdf`).
+  - `exportPatientInvoicePdf(patient)`: Individual Invoice download (`{FirstName} {Surname} - Invoice.pdf`).
+  - `exportCareHomeReportPdf(summary)`: Executive Summary download (`{CareHome} - Care Home Summary Report.pdf`).
 
 - [ ] **Task 7.2: Build 1-Click Batch ZIP Archive Exporter (`src/utils/pdfGenerator.tsx`)**
   - `exportBatchZipArchive(summary, patients, onProgress)`:
     - Generates all PDFs asynchronously with progress reporting.
     - Creates organized folder hierarchy in `JSZip`:
       ```text
-      📁 Fairhaven_Care_Home_Optometry_2026-08-24.zip
-      ├── 00_Fairhaven_Care_Home_Summary_Report_2026-08-24.pdf
+      📁 Fairhaven Care Home.zip
+      ├── 00 - Fairhaven Care Home - Summary Report.pdf
+      ├── 00 - Fairhaven Care Home - Cleaned Roster.csv
       ├── 📁 Reports/
-      │   ├── FCH-MD1403-OPT1_Dudman_Melanie_Report.pdf
-      │   ├── FCH-AP2211-OPT2_Pendleton_Arthur_Report.pdf
+      │   ├── Melanie Dudman - Eye Report.pdf
+      │   ├── Arthur Pendleton - Eye Report.pdf
       │   └── ...
       └── 📁 Invoices/
-          ├── FCH-MD1403-INV1_Dudman_Melanie_Invoice.pdf
-          ├── FCH-AP2211-INV2_Pendleton_Arthur_Invoice.pdf
+          ├── Melanie Dudman - Invoice.pdf
+          ├── Arthur Pendleton - Invoice.pdf
           └── ...
       ```
     - Compresses with `DEFLATE` (level 6) and triggers automatic browser download.
