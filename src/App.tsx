@@ -129,10 +129,13 @@ export const App: React.FC = () => {
   const handleExportBatchZip = async () => {
     if (!summary || patients.length === 0) return;
 
+    const invoiceCount = summary.seenPatients.filter((p) => p.totalAmount > 0).length;
+    const totalDocs = 2 + summary.seenPatientsCount + invoiceCount;
+
     setExportProgress({
       isOpen: true,
       current: 0,
-      total: 1 + summary.seenPatientsCount * 2,
+      total: totalDocs,
       percent: 0,
       status: 'Initializing batch PDF generator...',
       itemTitle: summary.careHome,

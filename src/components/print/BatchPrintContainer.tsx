@@ -17,15 +17,17 @@ export const BatchPrintContainer: React.FC<BatchPrintContainerProps> = ({ summar
       {/* 1. Care Home Summary Report */}
       <CareHomeReport summary={summary} />
 
-      {/* 2. Patient Reports & Invoices */}
+      {/* 2. Patient Reports & Invoices (Invoices only for non-zero balance) */}
       {seenPatients.map((patient) => (
         <React.Fragment key={patient.id}>
           <div className="page-break">
             <OptometryReport patient={patient} />
           </div>
-          <div className="page-break">
-            <OptometryInvoice patient={patient} />
-          </div>
+          {patient.totalAmount > 0 && (
+            <div className="page-break">
+              <OptometryInvoice patient={patient} />
+            </div>
+          )}
         </React.Fragment>
       ))}
     </div>

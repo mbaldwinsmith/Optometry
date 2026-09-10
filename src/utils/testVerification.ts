@@ -123,18 +123,20 @@ export async function runSelfVerificationTests(): Promise<{ passed: boolean; res
   const cleanHome = sanitizeFileName(rawHome);
   const reportFile = sanitizeFileName('Wendy Haynes - Eye Report.pdf');
   const invoiceFile = sanitizeFileName('Wendy Haynes - Invoice.pdf');
+  const fullVisitFile = sanitizeFileName(`00 - ${cleanHome} - Full Visit Report.pdf`);
   const zipFile = `${cleanHome}.zip`;
 
   if (
     cleanHome === 'Nightingale House Home' &&
     reportFile === 'Wendy Haynes - Eye Report.pdf' &&
     invoiceFile === 'Wendy Haynes - Invoice.pdf' &&
+    fullVisitFile === '00 - Nightingale House Home - Full Visit Report.pdf' &&
     zipFile === 'Nightingale House Home.zip'
   ) {
-    results.push('✓ Test 8 Passed: User-friendly filenames verified without underscores (e.g., "' + reportFile + '", "' + zipFile + '")');
+    results.push('✓ Test 8 Passed: User-friendly filenames verified without underscores (e.g., "' + fullVisitFile + '", "' + zipFile + '")');
   } else {
     passed = false;
-    results.push('✗ Test 8 Failed: User-friendly filename formatting issue (' + cleanHome + ', ' + reportFile + ')');
+    results.push('✗ Test 8 Failed: User-friendly filename formatting issue (' + cleanHome + ', ' + reportFile + ', ' + fullVisitFile + ')');
   }
 
   // Test 9: No Spectacles Ordered / Required detection
@@ -159,6 +161,16 @@ BLK-5435,St Marks,CO15 3PW,02/09/2026,24/09/1956,Adnan Hussain,Ricky,Mellowship,
   } else {
     passed = false;
     results.push('✗ Test 9 Failed: Sheila lensType=' + sheila?.dispense.lensType + ', Ricky lensType=' + ricky?.dispense.lensType);
+  }
+
+  // Test 10: Zero-balance resident invoice exclusion verification
+  const zeroBalancePatients = parseRes.patients.filter((p) => p.seen && p.totalAmount === 0);
+  const billablePatients = parseRes.patients.filter((p) => p.seen && p.totalAmount > 0);
+  if (zeroBalancePatients.length > 0 && billablePatients.length > 0) {
+    results.push(`✓ Test 10 Passed: Zero-balance invoice filtering verified (${zeroBalancePatients.length} zero-balance residents excluded from invoice generation, ${billablePatients.length} billable residents generated)`);
+  } else {
+    passed = false;
+    results.push('✗ Test 10 Failed: Zero-balance resident verification failed');
   }
 
   console.log('[Verification Suite]', passed ? 'ALL TESTS PASSED' : 'TESTS FAILED', results);

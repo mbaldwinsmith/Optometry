@@ -154,6 +154,7 @@ export async function exportPatientReportPdf(patient: PatientRow): Promise<void>
 }
 
 export async function exportPatientInvoicePdf(patient: PatientRow): Promise<void> {
+  if (patient.totalAmount <= 0) return;
   const patientName =
     [patient.residentFirstName, patient.residentSurname].filter(Boolean).join(' ') ||
     patient.residentFullName ||
@@ -167,6 +168,34 @@ export async function exportCareHomeReportPdf(summary: CareHomeSummary): Promise
   const careHome = sanitizeFileName(summary.careHome?.trim() || 'Care Home');
   const filename = sanitizeFileName(`${careHome} - Care Home Summary Report.pdf`);
   const blob = await renderReactNodeToPdfBlob(<CareHomeReport summary={summary} />);
+  triggerBlobDownload(blob, filename);
+}
+
+export async function generateFullVisitReportBlob(
+  summary: CareHomeSummary,
+  patients: PatientRow[]
+): Promise<Blob> {
+  const seenPatients = patients.filter((p) => p.seen);
+  return await renderReactNodeToPdfBlob(
+    <div className="flex flex-col gap-6">
+      <CareHomeReport summary={summary} />
+      {seenPatients.map((patient) => (
+        <React.Fragment key={patient.id}>
+          <OptometryReport patient={patient} />
+          {patient.totalAmount > 0 && <OptometryInvoice patient={patient} />}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+export async function exportFullVisitReportPdf(
+  summary: CareHomeSummary,
+  patients: PatientRow[]
+): Promise<void> {
+  const safeCareHome = sanitizeFileName(summary.careHome?.trim() || 'Care Home');
+  const filename = sanitizeFileName(`00 - ${safeCareHome} - Full Visit Report.pdf`);
+  const blob = await generateFullVisitReportBlob(summary, patients);
   triggerBlobDownload(blob, filename);
 }
 
@@ -186,7 +215,8 @@ export async function exportBatchZipArchive(
   onProgress?: BatchProgressCallback
 ): Promise<void> {
   const seenPatients = patients.filter((p) => p.seen);
-  const totalDocs = 1 + seenPatients.length * 2;
+  const invoicePatients = seenPatients.filter((p) => p.totalAmount > 0);
+  const totalDocs = 2 + seenPatients.length + invoicePatients.length;
   let currentDoc = 0;
 
   const zip = new JSZip();
@@ -196,9 +226,25 @@ export async function exportBatchZipArchive(
   const folder = zip.folder(rootFolderName) || zip;
 
   const reportsFolder = folder.folder('Reports');
-  const invoicesFolder = folder.folder('Invoices');
+  const invoicesFolder = invoicePatients.length > 0 ? folder.folder('Invoices') : null;
 
-  // 1. Care Home Overview Report
+  // 1. Full Visit Report (Consolidated PDF with Care Home Report, Patient Reports & Invoices)
+  currentDoc++;
+  if (onProgress) {
+    onProgress({
+      current: currentDoc,
+      total: totalDocs,
+      percent: Math.round((currentDoc / totalDocs) * 100),
+      status: 'Generating Full Consolidated Visit Report...',
+      itemTitle: `${safeCareHome} - Full Visit Report`,
+    });
+  }
+
+  const fullReportBlob = await generateFullVisitReportBlob(summary, patients);
+  const fullReportFileName = sanitizeFileName(`00 - ${safeCareHome} - Full Visit Report.pdf`);
+  folder.file(fullReportFileName, fullReportBlob);
+
+  // 2. Individual Care Home Overview Report
   currentDoc++;
   if (onProgress) {
     onProgress({
@@ -219,7 +265,7 @@ export async function exportBatchZipArchive(
   const cleanedCsvFileName = sanitizeFileName(`00 - ${safeCareHome} - Cleaned Roster.csv`);
   folder.file(cleanedCsvFileName, cleanedCsvText);
 
-  // 2. Loop through seen patients
+  // 3. Loop through seen patients for individual Patient Reports
   for (let i = 0; i < seenPatients.length; i++) {
     const patient = seenPatients[i];
     const patientName =
@@ -246,15 +292,23 @@ export async function exportBatchZipArchive(
     } else {
       folder.file('Reports - ' + reportFileName, reportBlob);
     }
+  }
 
-    // Patient Invoice
+  // 4. Loop through billable patients for individual Invoices (only where totalAmount > 0)
+  for (let i = 0; i < invoicePatients.length; i++) {
+    const patient = invoicePatients[i];
+    const patientName =
+      [patient.residentFirstName, patient.residentSurname].filter(Boolean).join(' ') ||
+      patient.residentFullName ||
+      `Resident ${i + 1}`;
+
     currentDoc++;
     if (onProgress) {
       onProgress({
         current: currentDoc,
         total: totalDocs,
         percent: Math.round((currentDoc / totalDocs) * 100),
-        status: 'Generating Invoice ' + (i + 1) + ' of ' + seenPatients.length + '...',
+        status: 'Generating Invoice ' + (i + 1) + ' of ' + invoicePatients.length + '...',
         itemTitle: patientName + ' (Invoice)',
       });
     }

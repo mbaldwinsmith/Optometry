@@ -576,7 +576,13 @@ export const PatientEditor: React.FC<PatientEditorProps> = ({
               <button
                 type="button"
                 onClick={() => exportPatientInvoicePdf(patient)}
-                className="flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm"
+                disabled={patient.totalAmount <= 0}
+                className={`flex items-center justify-center gap-1.5 border px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm ${
+                  patient.totalAmount <= 0
+                    ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
+                }`}
+                title={patient.totalAmount <= 0 ? 'No invoice required (balance is £0.00)' : 'Download resident invoice'}
               >
                 <Receipt className="w-3.5 h-3.5 text-slate-600" />
                 <span>Download Invoice</span>

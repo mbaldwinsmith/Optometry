@@ -98,7 +98,25 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
     setMobilePane('preview');
   };
 
-  const isIndividualDocDisabled = !selectedPatient?.seen && activeTab !== 'care-home';
+  const isIndividualDocDisabled =
+    activeTab === 'care-home'
+      ? false
+      : activeTab === 'patient-report'
+      ? !selectedPatient?.seen
+      : !selectedPatient?.seen || (selectedPatient?.totalAmount ?? 0) <= 0;
+
+  const getDownloadButtonTooltip = () => {
+    if (activeTab === 'care-home') {
+      return 'Download Care Home Summary Report as PDF';
+    }
+    if (!selectedPatient?.seen) {
+      return 'Individual documents are only generated for examined residents';
+    }
+    if (activeTab === 'patient-invoice' && selectedPatient.totalAmount <= 0) {
+      return 'No invoice required (balance is £0.00)';
+    }
+    return 'Download this document as high-resolution A4 PDF';
+  };
 
   const handleDownloadCurrentDoc = async () => {
     if (isDownloadingCurrent) return;
@@ -109,7 +127,7 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
         await exportCareHomeReportPdf(summary);
       } else if (activeTab === 'patient-report' && selectedPatient && selectedPatient.seen) {
         await exportPatientReportPdf(selectedPatient);
-      } else if (activeTab === 'patient-invoice' && selectedPatient && selectedPatient.seen) {
+      } else if (activeTab === 'patient-invoice' && selectedPatient && selectedPatient.seen && selectedPatient.totalAmount > 0) {
         await exportPatientInvoicePdf(selectedPatient);
       }
     } finally {
@@ -373,11 +391,7 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
                     ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
                     : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300'
                 }`}
-                title={
-                  isIndividualDocDisabled
-                    ? 'Individual documents are only generated for examined residents'
-                    : 'Download this document as high-resolution A4 PDF'
-                }
+                title={getDownloadButtonTooltip()}
               >
                 {isDownloadingCurrent ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-blue" />
@@ -465,9 +479,7 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
               )
             )}
             {activeTab === 'patient-invoice' && selectedPatient && (
-              selectedPatient.seen ? (
-                <OptometryInvoice patient={selectedPatient} />
-              ) : (
+              !selectedPatient.seen ? (
                 <div className="a4-page p-8 md:p-12 flex flex-col items-center justify-center text-center bg-white rounded-lg shadow-sm border border-slate-200 text-slate-600 max-w-2xl my-auto">
                   <div className="w-14 h-14 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-2xl mb-4">
                     🧾
@@ -486,6 +498,32 @@ export const BatchManager: React.FC<BatchManagerProps> = ({
                     <span>View Care Home Summary Report</span>
                   </button>
                 </div>
+              ) : selectedPatient.totalAmount <= 0 ? (
+                <div className="a4-page p-8 md:p-12 flex flex-col items-center justify-center text-center bg-white rounded-lg shadow-sm border border-slate-200 text-slate-600 max-w-2xl my-auto">
+                  <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-2xl mb-4">
+                    💳
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 mb-1.5">
+                    Zero Balance — No Invoice Required
+                  </h3>
+                  <p className="text-xs text-slate-600 max-w-md leading-relaxed mb-3">
+                    No invoice is generated for <strong className="text-slate-800">{selectedPatient.residentFullName}</strong> because their account balance is <strong>£0.00</strong>.
+                  </p>
+                  <div className="bg-emerald-50/70 border border-emerald-200 rounded-md px-3.5 py-2 text-xs text-emerald-900 mb-5 max-w-md font-medium">
+                    {selectedPatient.funding === 'NHS'
+                      ? 'Fully covered under NHS General Ophthalmic Services (GOS 3 optical voucher & sight test).'
+                      : 'Private eye examination provided complimentary with no balance due.'}
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('patient-report')}
+                    className="inline-flex items-center gap-2 bg-brand-navy hover:bg-brand-blue text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm"
+                  >
+                    <Glasses className="w-3.5 h-3.5" />
+                    <span>View Patient Eyecare Summary</span>
+                  </button>
+                </div>
+              ) : (
+                <OptometryInvoice patient={selectedPatient} />
               )
             )}
           </div>
